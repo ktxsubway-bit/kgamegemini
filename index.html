@@ -8,7 +8,7 @@
         :root {
             --bg: #020617;
             --card: #0f172a;
-            --accent: #818cf8;
+            --accent: #6366f1;
             --text: #f1f5f9;
             --text-dim: #94a3b8;
             --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -16,25 +16,25 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: var(--bg); color: var(--text);
-            font-family: 'Pretendard', sans-serif; overflow: hidden;
+            font-family: 'Pretendard', -apple-system, sans-serif; overflow: hidden;
         }
         #navbar {
-            height: 64px; background: rgba(2, 6, 23, 0.85);
-            backdrop-filter: blur(12px); display: flex; align-items: center;
-            padding: 0 24px; border-bottom: 1px solid #1e293b;
+            height: 60px; background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(10px); display: flex; align-items: center;
+            padding: 0 20px; border-bottom: 1px solid #1e293b;
             position: fixed; top: 0; width: 100%; box-sizing: border-box; z-index: 100;
         }
         #chat-container {
             display: flex; flex-direction: column;
-            height: calc(100vh - 64px); margin-top: 64px;
+            height: calc(100vh - 60px); margin-top: 60px;
             max-width: 800px; margin-left: auto; margin-right: auto;
         }
         #chat-log {
-            flex: 1; overflow-y: auto; padding: 24px;
+            flex: 1; overflow-y: auto; padding: 20px;
             display: flex; flex-direction: column; gap: 16px;
             scroll-behavior: smooth;
         }
-        .msg { padding: 12px 18px; border-radius: 18px; max-width: 80%; line-height: 1.5; font-size: 15px; }
+        .msg { padding: 12px 18px; border-radius: 18px; max-width: 80%; line-height: 1.5; font-size: 15px; word-break: break-word; }
         .msg-user { align-self: flex-end; background: var(--gradient); color: white; border-bottom-right-radius: 4px; }
         .msg-ai { align-self: flex-start; background: var(--card); border: 1px solid #1e293b; border-bottom-left-radius: 4px; }
         .msg-system { align-self: center; background: rgba(30, 41, 59, 0.5); color: var(--text-dim); font-size: 12px; padding: 6px 16px; border-radius: 20px; }
@@ -48,6 +48,7 @@
             padding: 0 24px; border-radius: 12px; border: none;
             background: var(--gradient); color: white; font-weight: bold; cursor: pointer;
         }
+        #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         #setup-screen {
             position: fixed; inset: 0; background: #020617;
@@ -58,9 +59,10 @@
             text-align: center; width: 90%; max-width: 400px;
             border: 1px solid #1e293b;
         }
-        input {
-            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #1e293b; 
+        input#persona-input {
+            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #1e293b; 
             background: #020617; color: white; box-sizing: border-box; margin-bottom: 20px;
+            font-size: 15px;
         }
         .typing { padding: 10px 24px; font-size: 13px; color: var(--accent); display: none; }
     </style>
@@ -68,22 +70,22 @@
 <body>
 
 <nav id="navbar">
-    <div style="font-weight: bold; font-size: 18px;">Gemini Chat</div>
-    <div id="status" style="margin-left: auto; font-size: 12px; color: var(--text-dim);">Ready</div>
+    <div style="font-weight: bold; font-size: 18px;">GEMINI AI CHAT</div>
+    <div id="status-info" style="margin-left: auto; font-size: 11px; color: var(--text-dim);">연결됨</div>
 </nav>
 
 <div id="setup-screen">
     <div class="setup-box">
-        <h2 style="margin-bottom: 10px;">페르소나 설정</h2>
-        <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 20px;">AI의 성격을 입력하고 시작하세요.</p>
-        <input type="text" id="persona-input" placeholder="예: 까칠한 고양이, 친절한 비서" value="친절한 친구">
-        <button id="start-btn" style="width:100%; padding:15px; border-radius:10px; border:none; background:var(--gradient); color:white; font-weight:bold; cursor:pointer;">대화 시작하기</button>
+        <h2 style="margin-top: 0;">성격 설정</h2>
+        <p style="font-size: 14px; color: var(--text-dim); margin-bottom: 25px;">AI가 어떤 말투로 대답할지 정해주세요.</p>
+        <input type="text" id="persona-input" placeholder="예: 무뚝뚝한 로봇, 다정한 상담원" value="친절하고 박학다식한 조수">
+        <button id="start-btn" style="width:100%; padding:16px; border-radius:12px; border:none; background:var(--gradient); color:white; font-weight:bold; cursor:pointer;">대화 시작하기</button>
     </div>
 </div>
 
 <div id="chat-container">
     <div id="chat-log"></div>
-    <div id="typing" class="typing">AI가 메시지를 작성 중...</div>
+    <div id="typing" class="typing">답변을 생성 중입니다...</div>
     <div class="input-area">
         <input type="text" id="user-input" placeholder="메시지를 입력하세요..." autocomplete="off">
         <button id="send-btn">전송</button>
@@ -91,16 +93,30 @@
 </div>
 
 <script type="module">
-    // Current environment provided API Key (empty string for runtime injection)
-    const apiKey = ""; 
-    const modelId = "gemini-2.5-flash-preview-09-2025";
+    // 시스템에서 제공하는 API 키 (빈 문자열 유지, 런타임 주입됨)
+    const systemApiKey = ""; 
+    
+    // 사용자가 제공한 백업 키 리스트
+    const backupKeys = [
+        "AIzaSyAF-MPQ9bnBHOVpI2fBVGG3zHQW-pBYVpQ",
+        "AIzaSyBph3eVitxFUIkBB1QRNYDS8lyTUgg7yrg",
+        "AIzaSyDvR1d58iNJqpYck_gIGDW7Rc02u01-SpQ"
+    ];
+
+    // 시도할 모델 리스트 (우선순위 순)
+    const MODEL_CANDIDATES = [
+        "gemini-2.5-flash-preview-09-2025",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro"
+    ];
 
     let persona = "";
     const log = document.getElementById('chat-log');
     const uInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
     const typing = document.getElementById('typing');
     const setupScreen = document.getElementById('setup-screen');
-    const startBtn = document.getElementById('start-btn');
+    const statusInfo = document.getElementById('status-info');
 
     function addMsg(role, text) {
         const div = document.createElement('div');
@@ -110,63 +126,83 @@
         log.scrollTop = log.scrollHeight;
     }
 
-    async function fetchAIResponse(userInput) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
-        
+    async function requestAPI(key, model, userInput) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const payload = {
-            contents: [{
-                parts: [{ text: userInput }]
-            }],
-            systemInstruction: {
-                parts: [{ text: `당신의 페르소나는 다음과 같습니다: ${persona}. 반드시 한국어로 답변하고, 친근하게 2-3문장 내외로 대답하세요.` }]
-            }
+            contents: [{ parts: [{ text: userInput }] }],
+            systemInstruction: { parts: [{ text: `당신의 성격: ${persona}. 반드시 한국어로 답변하고, 친근하게 1~3문장 이내로 짧게 말하세요.` }] }
         };
 
-        // Exponential backoff retry logic
-        for (let i = 0; i < 5; i++) {
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error?.message || "Unknown error");
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || "API Error");
+        }
+
+        const data = await response.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+    }
+
+    async function fetchAIResponse(userInput) {
+        // 1. 모든 키 조합 (시스템 키 우선)
+        const allKeys = [systemApiKey, ...backupKeys].filter(k => k !== undefined);
+        
+        for (const key of allKeys) {
+            // 2. 각 키에 대해 작동하는 모델 찾기
+            for (const model of MODEL_CANDIDATES) {
+                try {
+                    statusInfo.innerText = `${model} 연결 중...`;
+                    // 지수 백오프 기반 재시도 (최대 2회)
+                    for (let i = 0; i < 2; i++) {
+                        try {
+                            return await requestAPI(key, model, userInput);
+                        } catch (e) {
+                            if (i === 1) throw e;
+                            await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`${model} 실패: ${err.message}`);
+                    continue; // 다음 모델 시도
                 }
-
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "답변을 생성할 수 없습니다.";
-            } catch (error) {
-                if (i === 4) throw error;
-                await new Promise(res => setTimeout(res, Math.pow(2, i) * 1000));
             }
         }
+        throw new Error("모든 모델과 API 키가 응답하지 않습니다. 네트워크나 할당량을 확인해주세요.");
     }
 
     async function handleSend() {
         const text = uInput.value.trim();
-        if (!text) return;
+        if (!text || sendBtn.disabled) return;
 
         addMsg("user", text);
         uInput.value = "";
+        sendBtn.disabled = true;
         typing.style.display = "block";
 
         try {
-            const reply = await fetchAIResponse(text);
+            const aiReply = await fetchAIResponse(text);
             typing.style.display = "none";
-            addMsg("ai", reply);
+            addMsg("ai", aiReply);
+            statusInfo.innerText = "연결됨";
         } catch (error) {
             typing.style.display = "none";
-            addMsg("system", `오류 발생: ${error.message}`);
+            addMsg("system", `오류: ${error.message}`);
+            statusInfo.innerText = "연결 실패";
+        } finally {
+            sendBtn.disabled = false;
+            uInput.focus();
         }
     }
 
-    startBtn.onclick = () => {
-        persona = document.getElementById('persona-input').value || "친절한 조수";
+    document.getElementById('start-btn').onclick = () => {
+        persona = document.getElementById('persona-input').value.trim() || "친절한 조수";
         setupScreen.style.display = "none";
-        addMsg("system", `대화가 시작되었습니다. (페르소나: ${persona})`);
+        addMsg("system", `대화가 시작되었습니다. (성격: ${persona})`);
     };
 
     uInput.onkeydown = (e) => { if(e.key === 'Enter') handleSend(); };
@@ -174,3 +210,4 @@
 </script>
 </body>
 </html>
+
