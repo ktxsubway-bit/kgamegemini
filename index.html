@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groq Persona Chat</title>
+    <title>AI 페르소나 대화</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
@@ -34,52 +34,52 @@
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- Header -->
+    <!-- 상단 바 -->
     <header class="h-14 flex items-center justify-between px-6 glass-header sticky top-0 z-50">
         <div class="flex items-center gap-2">
-            <div class="w-7 h-7 bg-orange-600 rounded-md flex items-center justify-center shadow-lg shadow-orange-900/20">
-                <span class="text-white font-black text-xs">G</span>
+            <div class="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-lg shadow-blue-900/20">
+                <span class="text-white font-black text-xs">AI</span>
             </div>
-            <h1 class="font-bold text-sm tracking-tight text-slate-200">Groq Llama 3.3</h1>
+            <h1 class="font-bold text-sm tracking-tight text-slate-200">AI 페르소나 대화</h1>
         </div>
         <div class="flex items-center gap-3">
             <button id="persona-btn" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 text-slate-300 transition-all">
-                성격 변경
+                AI 말투 바꾸기
             </button>
             <div id="status-dot" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
         </div>
     </header>
 
-    <!-- Persona Setup Modal -->
+    <!-- 성격 설정 창 -->
     <div id="persona-modal" class="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl">
-            <h2 class="text-xl font-bold mb-2">AI 성격 설정</h2>
-            <p class="text-slate-400 text-xs mb-6">AI가 어떤 성격으로 대화할지 정해주세요.</p>
+            <h2 class="text-xl font-bold mb-2">AI 캐릭터 설정</h2>
+            <p class="text-slate-400 text-xs mb-6">AI가 어떤 사람처럼 말하면 좋을지 적어주세요.</p>
             <div class="space-y-4">
-                <input type="text" id="persona-input" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-orange-500" placeholder="예: 시니컬한 천재 개발자, 다정한 선생님" value="다정하고 똑똑한 친구">
-                <button id="save-persona-btn" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 rounded-xl transition-all">설정 저장 및 시작</button>
+                <input type="text" id="persona-input" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="예: 다정한 선생님, 장난기 많은 친구" value="장난기 많은 친구">
+                <button id="save-persona-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all">설정 완료하고 대화하기</button>
             </div>
         </div>
     </div>
 
-    <!-- Chat Log Area -->
+    <!-- 채팅창 -->
     <main class="flex-1 overflow-y-auto p-4 space-y-5 pb-24" id="chat-log"></main>
 
-    <!-- Loading UI -->
+    <!-- 대기 중 UI -->
     <div id="loading-ui" class="hidden fixed bottom-24 left-6 bg-slate-800/95 px-4 py-2.5 rounded-2xl border border-slate-700 flex items-center gap-2 z-40 shadow-2xl">
-        <div class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce"></div>
-        <div class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        <div class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-        <span id="loading-text" class="text-[10px] font-bold text-orange-300 ml-1">생각 중...</span>
+        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+        <span id="loading-text" class="text-[10px] font-bold text-blue-300 ml-1">AI가 생각하고 있어요...</span>
     </div>
 
-    <!-- Input Footer -->
+    <!-- 하단 입력 영역 -->
     <footer class="p-4 bg-slate-950/80 border-t border-white/5 backdrop-blur-md">
         <div class="max-w-4xl mx-auto flex gap-2">
             <input type="text" id="chat-input" 
-                class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl px-5 py-3 text-white outline-none focus:ring-2 focus:ring-orange-600 transition-all placeholder-slate-600" 
-                placeholder="메시지를 입력하세요...">
-            <button id="send-btn" class="bg-orange-600 hover:bg-orange-500 text-white px-6 rounded-2xl font-bold shadow-lg shadow-orange-900/20 active:scale-90 transition-all flex items-center justify-center group">
+                class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl px-5 py-3 text-white outline-none focus:ring-2 focus:ring-blue-600 transition-all placeholder-slate-600" 
+                placeholder="AI에게 메시지를 보내보세요...">
+            <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-2xl font-bold shadow-lg shadow-blue-900/20 active:scale-90 transition-all flex items-center justify-center group">
                 <svg class="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                 </svg>
@@ -89,14 +89,16 @@
 
     <script>
         const GROQ_API_KEYS = [
-            "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",
-            "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"
+            "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",
+            "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"
         ];
         
         let currentKeyIndex = 0;
         let messageHistory = [];
-        let aiPersona = "편의점 진상";
+        let aiPersona = "장난기 많은 친구";
         
+        const MODEL_ID = "llama-3.1-8b-instant";
+
         const chatLog = document.getElementById('chat-log');
         const chatInput = document.getElementById('chat-input');
         const sendBtn = document.getElementById('send-btn');
@@ -115,7 +117,7 @@
             bubble.className = `message-bubble px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                 isError ? 'bg-red-900/40 text-red-200 border border-red-800/50' :
                 role === 'user' 
-                ? 'bg-orange-600 text-white rounded-br-none' 
+                ? 'bg-blue-600 text-white rounded-br-none' 
                 : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/50'
             }`;
             
@@ -128,7 +130,6 @@
         async function fetchAIResponse(userInput) {
             const endpoint = "https://api.groq.com/openai/v1/chat/completions";
             
-            // 키 배열을 순회하며 시도
             for (let i = currentKeyIndex; i < GROQ_API_KEYS.length; i++) {
                 const apiKey = GROQ_API_KEYS[i];
                 
@@ -140,11 +141,11 @@
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            model: "llama-3.3-70b-versatile",
+                            model: MODEL_ID,
                             messages: [
                                 { 
                                     role: "system", 
-                                    content: `당신의 성격은 "${aiPersona}"입니다. 이 성격에 완전히 몰입하여 한국어로 답변하세요. 간결하고 명확하게 말하되 성격의 특징을 잘 살려야 합니다.` 
+                                    content: `당신의 캐릭터는 "${aiPersona}"입니다. 이 캐릭터의 말투와 성격에 완전히 몰입하여 한국어로 답변하세요. 너무 길지 않게 핵심만 말하되 캐릭터의 특징을 잘 보여주어야 합니다.` 
                                 },
                                 ...messageHistory,
                                 { role: "user", content: userInput }
@@ -155,25 +156,21 @@
                     });
 
                     if (response.status === 429 || response.status === 401) {
-                        console.warn(`Key ${i} failed. Trying next key if available...`);
                         if (i < GROQ_API_KEYS.length - 1) {
                             currentKeyIndex = i + 1;
-                            loadingText.textContent = "보조 회선으로 전환 중...";
-                            continue; // 루프의 다음 키로 진행
+                            loadingText.textContent = "잠시만 기다려주세요 (회선 전환 중)...";
+                            continue;
                         }
                     }
 
                     const result = await response.json();
                     if (!response.ok) throw new Error(result.error?.message || "서버 응답 오류");
                     
-                    currentKeyIndex = i; // 성공한 키 인덱스 유지
                     return result.choices[0].message.content;
 
                 } catch (err) {
-                    // 마지막 키까지 실패한 경우에만 에러 던짐
                     if (i === GROQ_API_KEYS.length - 1) throw err;
                     currentKeyIndex = i + 1;
-                    loadingText.textContent = "회선 복구 중...";
                 }
             }
         }
@@ -186,7 +183,7 @@
             chatInput.value = "";
             sendBtn.disabled = true;
             loadingUi.classList.remove('hidden');
-            loadingText.textContent = "생각 중...";
+            loadingText.textContent = "AI가 생각하고 있어요...";
 
             try {
                 const responseText = await fetchAIResponse(content);
@@ -197,7 +194,7 @@
 
                 appendMessage('ai', responseText);
             } catch (error) {
-                appendMessage('ai', `⚠️ 에러: ${error.message}. 모든 API 키가 소진되었거나 서버 오류가 발생했습니다.`, true);
+                appendMessage('ai', `⚠️ 에러가 발생했어요: ${error.message}`, true);
             } finally {
                 loadingUi.classList.add('hidden');
                 sendBtn.disabled = false;
@@ -212,7 +209,7 @@
                 personaModal.classList.add('hidden');
                 chatLog.innerHTML = ""; 
                 messageHistory = [];
-                appendMessage('ai', `알겠습니다. 저는 이제부터 "${aiPersona}"입니다. 대화를 시작해볼까요?`);
+                appendMessage('ai', `대화를 시작합니다.`);
             }
         };
 
