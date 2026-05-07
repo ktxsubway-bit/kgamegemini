@@ -70,7 +70,7 @@
         <div class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce"></div>
         <div class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
         <div class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-        <span class="text-[10px] font-bold text-orange-300 ml-1">생각 중...</span>
+        <span id="loading-text" class="text-[10px] font-bold text-orange-300 ml-1">생각 중...</span>
     </div>
 
     <!-- Input Footer -->
@@ -88,15 +88,20 @@
     </footer>
 
     <script>
-        const GROQ_API_KEY = "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";
+        const GROQ_API_KEYS = [
+            "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",
+            "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"
+        ];
         
+        let currentKeyIndex = 0;
         let messageHistory = [];
-        let aiPersona = "중학교 일진";
+        let aiPersona = "편의점 진상";
         
         const chatLog = document.getElementById('chat-log');
         const chatInput = document.getElementById('chat-input');
         const sendBtn = document.getElementById('send-btn');
         const loadingUi = document.getElementById('loading-ui');
+        const loadingText = document.getElementById('loading-text');
         const personaModal = document.getElementById('persona-modal');
         const personaInput = document.getElementById('persona-input');
         const savePersonaBtn = document.getElementById('save-persona-btn');
@@ -123,36 +128,54 @@
         async function fetchAIResponse(userInput) {
             const endpoint = "https://api.groq.com/openai/v1/chat/completions";
             
-            const payload = {
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { 
-                        role: "system", 
-                        content: `당신의 성격은 "${aiPersona}"입니다. 이 성격에 완전히 몰입하여 한국어로 답변하세요. 간결하고 명확하게 말하되 성격의 특징을 잘 살려야 합니다.` 
-                    },
-                    ...messageHistory,
-                    { role: "user", content: userInput }
-                ],
-                temperature: 0.8,
-                max_tokens: 1500
-            };
+            // 키 배열을 순회하며 시도
+            for (let i = currentKeyIndex; i < GROQ_API_KEYS.length; i++) {
+                const apiKey = GROQ_API_KEYS[i];
+                
+                try {
+                    const response = await fetch(endpoint, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${apiKey}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            model: "llama-3.3-70b-versatile",
+                            messages: [
+                                { 
+                                    role: "system", 
+                                    content: `당신의 성격은 "${aiPersona}"입니다. 이 성격에 완전히 몰입하여 한국어로 답변하세요. 간결하고 명확하게 말하되 성격의 특징을 잘 살려야 합니다.` 
+                                },
+                                ...messageHistory,
+                                { role: "user", content: userInput }
+                            ],
+                            temperature: 0.8,
+                            max_tokens: 1500
+                        })
+                    });
 
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${GROQ_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
+                    if (response.status === 429 || response.status === 401) {
+                        console.warn(`Key ${i} failed. Trying next key if available...`);
+                        if (i < GROQ_API_KEYS.length - 1) {
+                            currentKeyIndex = i + 1;
+                            loadingText.textContent = "보조 회선으로 전환 중...";
+                            continue; // 루프의 다음 키로 진행
+                        }
+                    }
 
-            if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(errorBody.error?.message || "서버 응답 오류");
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error?.message || "서버 응답 오류");
+                    
+                    currentKeyIndex = i; // 성공한 키 인덱스 유지
+                    return result.choices[0].message.content;
+
+                } catch (err) {
+                    // 마지막 키까지 실패한 경우에만 에러 던짐
+                    if (i === GROQ_API_KEYS.length - 1) throw err;
+                    currentKeyIndex = i + 1;
+                    loadingText.textContent = "회선 복구 중...";
+                }
             }
-
-            const result = await response.json();
-            return result.choices[0].message.content;
         }
 
         async function handleSendMessage() {
@@ -163,6 +186,7 @@
             chatInput.value = "";
             sendBtn.disabled = true;
             loadingUi.classList.remove('hidden');
+            loadingText.textContent = "생각 중...";
 
             try {
                 const responseText = await fetchAIResponse(content);
@@ -173,7 +197,7 @@
 
                 appendMessage('ai', responseText);
             } catch (error) {
-                appendMessage('ai', `⚠️ 에러: ${error.message}`, true);
+                appendMessage('ai', `⚠️ 에러: ${error.message}. 모든 API 키가 소진되었거나 서버 오류가 발생했습니다.`, true);
             } finally {
                 loadingUi.classList.add('hidden');
                 sendBtn.disabled = false;
@@ -186,7 +210,7 @@
             if (val) {
                 aiPersona = val;
                 personaModal.classList.add('hidden');
-                chatLog.innerHTML = ""; // 성격이 바뀌면 대화 초기화 (선택 사항)
+                chatLog.innerHTML = ""; 
                 messageHistory = [];
                 appendMessage('ai', `알겠습니다. 저는 이제부터 "${aiPersona}"입니다. 대화를 시작해볼까요?`);
             }
