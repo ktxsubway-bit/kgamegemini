@@ -2,225 +2,1528 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 페르소나 대화</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>벨튀 서바이벌 3D (Ding Dong Ditch 3D - Day Mode)</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
-        body { 
-            font-family: 'Pretendard', sans-serif; 
-            background-color: #020617; 
-            color: #f1f5f9; 
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #e0f2fe;
         }
-        .message-bubble { 
-            max-width: 85%; 
-            animation: slideUp 0.2s ease-out; 
-            word-break: break-all; 
-            white-space: pre-wrap;
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(10px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        /* 조이스틱 커스텀 터치 영역 */
+        #joystick-zone {
+            touch-action: none;
         }
-        .glass-header { 
-            background: rgba(15, 23, 42, 0.8); 
-            backdrop-filter: blur(12px); 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
+<body class="text-slate-900">
 
-    <!-- 상단 바 -->
-    <header class="h-14 flex items-center justify-between px-6 glass-header sticky top-0 z-50">
-        <div class="flex items-center gap-2">
-            <div class="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-lg shadow-blue-900/20">
-                <span class="text-white font-black text-xs">AI</span>
+    <!-- 3D 렌더링 영역 -->
+    <div id="canvas-container"></div>
+
+    <!-- UI 레이어 -->
+    <div class="absolute inset-0 z-10 pointer-events-none flex flex-col justify-between p-4 md:p-6">
+        
+        <!-- 상단 헤더: 점수, 스태미나, 경고창 -->
+        <div class="flex justify-between items-start w-full">
+            <!-- 왼쪽: 점수 및 상태 -->
+            <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-yellow-500/30 flex flex-col gap-1 pointer-events-auto shadow-lg text-slate-800">
+                <div class="text-xs text-amber-600 font-bold uppercase tracking-wider">Mischief Score</div>
+                <div class="text-2xl md:text-3xl font-extrabold flex items-center gap-2">
+                    <span id="score-val" class="text-amber-500">0</span>
+                    <span class="text-xs text-slate-500 font-normal">벨튀 성공</span>
+                </div>
+                <div class="text-[10px] text-slate-500">최고 기록: <span id="high-score-val" class="text-amber-600 font-bold">0</span></div>
             </div>
-            <h1 class="font-bold text-sm tracking-tight text-slate-200">AI 페르소나 대화</h1>
+
+            <!-- 중앙: 위협도 경고 메시지 -->
+            <div id="warning-banner" class="hidden bg-red-500/95 text-white font-bold px-4 py-2 rounded-full border border-red-300 animate-pulse text-xs md:text-sm shadow-red-500/30 shadow-md flex items-center gap-2 pointer-events-auto">
+                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                <span>집주인이 쫓아오고 있습니다! 초록 수풀에 숨으세요!</span>
+            </div>
+
+            <!-- 오른쪽: 스태미나 바 -->
+            <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-blue-500/30 flex flex-col gap-1 w-36 md:w-48 pointer-events-auto shadow-lg text-slate-800">
+                <div class="flex justify-between text-xs font-bold">
+                    <span class="text-blue-600">🏃 스태미나</span>
+                    <span id="stamina-percent" class="text-blue-500">100%</span>
+                </div>
+                <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden p-[2px]">
+                    <div id="stamina-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full transition-all duration-75" style="width: 100%;"></div>
+                </div>
+                <div class="text-[9px] text-slate-500">Shift 키 또는 대시 버튼</div>
+            </div>
         </div>
-        <div class="flex items-center gap-3">
-            <button id="persona-btn" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded border border-slate-600 text-slate-300 transition-all">
-                AI 말투 바꾸기
+
+        <!-- 중간 알림 메시지 (벨 누를 수 있을 때 등) -->
+        <div class="flex justify-center items-center w-full my-auto">
+            <div id="interaction-prompt" class="hidden bg-yellow-400 text-slate-950 font-black px-6 py-3 rounded-2xl border-4 border-white animate-bounce text-sm md:text-base shadow-2xl pointer-events-auto cursor-pointer">
+                🔔 [SPACE] 눌러 벨튀하기!
+            </div>
+        </div>
+
+        <!-- 하단: 컨트롤 패널 (모바일 및 PC 안내) -->
+        <div class="flex justify-between items-end w-full">
+            <!-- 모바일 가상 조이스틱 (왼쪽) -->
+            <div class="pointer-events-auto flex items-center justify-center">
+                <div id="joystick-zone" class="w-32 h-32 md:w-40 md:h-40 rounded-full bg-white/60 border border-slate-300 backdrop-blur-sm relative flex items-center justify-center select-none active:bg-white/80 transition-colors shadow-lg">
+                    <div id="joystick-handle" class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-amber-500 shadow-md absolute pointer-events-none transition-all duration-75 ease-out flex items-center justify-center">
+                        <span class="text-xs text-white font-bold">🕹️</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 게임 팁 표시 (중앙) -->
+            <div class="hidden md:flex flex-col gap-1 text-center bg-white/85 px-4 py-2 rounded-xl text-xs text-slate-700 max-w-sm mb-2 backdrop-blur-sm border border-slate-200 shadow-md">
+                <p>💡 <span class="text-amber-600 font-bold">조작법</span>: WASD / 방향키 (이동) | Shift (대시) | Space (벨 누르기)</p>
+                <p>💡 <span class="text-emerald-600 font-bold">꿀팁</span>: 주인이 쫓아올 때 <span class="text-emerald-500 font-bold">연두색 수풀</span> 구역에 들어가면 감쪽같이 숨어집니다!</p>
+            </div>
+
+            <!-- 액션 버튼들 (오른쪽: 모바일 전용 대시 및 벨 누르기) -->
+            <div class="flex flex-col gap-3 pointer-events-auto">
+                <!-- 대시 버튼 -->
+                <button id="btn-dash" class="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-tr from-blue-500 to-cyan-400 text-white rounded-full border-2 border-white flex flex-col items-center justify-center font-bold text-xs shadow-lg active:scale-95 transition-transform select-none touch-none">
+                    <span class="text-xl">🏃</span>
+                    <span>대시</span>
+                </button>
+                <!-- 벨 누르기 버튼 -->
+                <button id="btn-ring" class="hidden w-20 h-20 md:w-24 md:h-24 bg-gradient-to-tr from-yellow-400 to-amber-500 rounded-full border-4 border-white flex flex-col items-center justify-center font-black text-slate-900 text-sm shadow-2xl active:scale-95 transition-transform select-none animate-pulse">
+                    <span class="text-2xl">🔔</span>
+                    <span>벨튀!</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 오디오 활성화 안내 스타트 스크린 -->
+    <div id="start-screen" class="absolute inset-0 z-50 bg-sky-100/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center select-none pointer-events-auto">
+        <div class="max-w-md w-full bg-white p-8 rounded-3xl border border-sky-300/30 shadow-2xl flex flex-col items-center gap-6 pointer-events-auto">
+            <div class="text-6xl animate-bounce">☀️🏃‍♂️💨🚪🔔</div>
+            <h1 class="text-4xl font-extrabold bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent">벨튀 서바이벌 3D</h1>
+            <p class="text-slate-600 text-sm leading-relaxed">
+                화창하고 평화로운 주택가 골목길... 장난꾸러기가 되어 이웃집 대문의 초인종을 장난스럽게 누르고 도망치세요! 화가 머리끝까지 난 이웃 주민들의 날카로운 눈초리를 피해 파릇파릇한 수풀 속에 숨어야 잡히지 않습니다.
+            </p>
+            
+            <div class="w-full space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left text-xs text-slate-600">
+                <div class="flex items-center gap-2"><span class="text-amber-500 font-bold">🔔 대문 앞 초인종 누르기:</span> 대문 옆에 마련된 우체통형 기둥의 초인종 구역에서 벨튀 가능!</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-500 font-bold">🌿 인도/수풀 피신:</span> 도로 밖 회색 인도와 초록 잔디의 연두색 덤불 영역에 숨으세요.</div>
+                <div class="flex items-center gap-2"><span class="text-blue-500 font-bold">🏃 기력 대시:</span> Shift 키나 대시 버튼으로 쌩쌩 달리되, 스태미나가 다 닳지 않도록 주의하세요!</div>
+            </div>
+
+            <button id="btn-start" class="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-black rounded-2xl text-lg hover:from-amber-500 hover:to-orange-600 active:scale-98 transition-all shadow-xl shadow-orange-500/20 pointer-events-auto">
+                골목길 벨튀하러 가기!
             </button>
-            <div id="status-dot" class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        </div>
-    </header>
-
-    <!-- 성격 설정 창 -->
-    <div id="persona-modal" class="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl w-full max-w-sm shadow-2xl">
-            <h2 class="text-xl font-bold mb-2">AI 캐릭터 설정</h2>
-            <p class="text-slate-400 text-xs mb-6">AI가 어떤 사람처럼 말하면 좋을지 적어주세요.</p>
-            <div class="space-y-4">
-                <input type="text" id="persona-input" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:ring-2 focus:ring-blue-500" placeholder="예: 다정한 선생님, 장난기 많은 친구" value="일진">
-                <button id="save-persona-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all">설정 완료하고 대화하기</button>
-            </div>
+            <div class="text-[10px] text-slate-400">※ 효과음 합성이 포함되어 있어 소리를 켜시면 더 스릴 넘칩니다!</div>
         </div>
     </div>
 
-    <!-- 채팅창 -->
-    <main class="flex-1 overflow-y-auto p-4 space-y-5 pb-24" id="chat-log"></main>
+    <!-- 게임 오버 모달 -->
+    <div id="gameover-screen" class="hidden absolute inset-0 z-40 bg-red-900/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white pointer-events-auto">
+        <div class="max-w-md w-full bg-white p-8 rounded-3xl border-2 border-red-300 shadow-2xl flex flex-col items-center gap-6 text-slate-800">
+            <div class="text-6xl text-red-500 animate-bounce">😡🫵🏃‍♂️</div>
+            <h2 class="text-3xl font-extrabold text-red-600">골목에서 현장 잡힘!</h2>
+            <p class="text-slate-600 text-sm">
+                "이 녀석! 한낮에 남의 집 초인종을 마구 누르고 도망치다니!"<br>
+                결국 끈질기게 쫓아온 집주인에게 단단히 덜미를 잡혔습니다.
+            </p>
 
-    <!-- 대기 중 UI -->
-    <div id="loading-ui" class="hidden fixed bottom-24 left-6 bg-slate-800/95 px-4 py-2.5 rounded-2xl border border-slate-700 flex items-center gap-2 z-40 shadow-2xl">
-        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
-        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-        <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-        <span id="loading-text" class="text-[10px] font-bold text-blue-300 ml-1">AI가 생각하고 있어요...</span>
-    </div>
+            <div class="grid grid-cols-2 gap-4 w-full bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div>
+                    <div class="text-xs text-slate-500">이번 성공 횟수</div>
+                    <div class="text-2xl font-black text-amber-500"><span id="final-score">0</span>회</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-500">역대 최고 기록</div>
+                    <div class="text-2xl font-black text-slate-700"><span id="final-highscore">0</span>회</div>
+                </div>
+            </div>
 
-    <!-- 하단 입력 영역 -->
-    <footer class="p-4 bg-slate-950/80 border-t border-white/5 backdrop-blur-md">
-        <div class="max-w-4xl mx-auto flex gap-2">
-            <input type="text" id="chat-input" 
-                class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl px-5 py-3 text-white outline-none focus:ring-2 focus:ring-blue-600 transition-all placeholder-slate-600" 
-                placeholder="AI에게 메시지를 보내보세요...">
-            <button id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-2xl font-bold shadow-lg shadow-blue-900/20 active:scale-90 transition-all flex items-center justify-center group">
-                <svg class="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                </svg>
+            <button id="btn-restart" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-black rounded-2xl text-lg hover:from-emerald-400 hover:to-green-500 active:scale-98 transition-all shadow-xl shadow-green-500/20 pointer-events-auto">
+                다시 기회 도전하기!
             </button>
         </div>
-    </footer>
+    </div>
 
     <script>
-        const GROQ_API_KEYS = [
-            "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"
-        ];
-        
-        let currentKeyIndex = 0;
-        let messageHistory = [];
-        let aiPersona = "장난기 많은 친구";
-        
-        const MODEL_ID = "llama-3.1-8b-instant";
+        // --- 사운드 효과 (Web Audio API) ---
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    try {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (AudioCtx) {
+                            this.ctx = new AudioCtx();
+                        }
+                    } catch (e) {
+                        console.warn("Web Audio API 시작 오류 (사운드 생략):", e);
+                    }
+                }
+            }
+            playBell() {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    // Ding
+                    const osc1 = this.ctx.createOscillator();
+                    const gain1 = this.ctx.createGain();
+                    osc1.type = 'triangle';
+                    osc1.frequency.setValueAtTime(880, now); // A5
+                    gain1.gain.setValueAtTime(0.3, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc1.connect(gain1);
+                    gain1.connect(this.ctx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.4);
 
-        const chatLog = document.getElementById('chat-log');
-        const chatInput = document.getElementById('chat-input');
-        const sendBtn = document.getElementById('send-btn');
-        const loadingUi = document.getElementById('loading-ui');
-        const loadingText = document.getElementById('loading-text');
-        const personaModal = document.getElementById('persona-modal');
-        const personaInput = document.getElementById('persona-input');
-        const savePersonaBtn = document.getElementById('save-persona-btn');
-        const personaBtn = document.getElementById('persona-btn');
+                    // Dong
+                    const osc2 = this.ctx.createOscillator();
+                    const gain2 = this.ctx.createGain();
+                    osc2.type = 'triangle';
+                    osc2.frequency.setValueAtTime(698.46, now + 0.25); // F5
+                    gain2.gain.setValueAtTime(0.3, now + 0.25);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc2.connect(gain2);
+                    gain2.connect(this.ctx.destination);
+                    osc2.start(now + 0.25);
+                    osc2.stop(now + 0.8);
+                } catch(err) {
+                    console.warn(err);
+                }
+            }
+            playAngry() {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    for(let i=0; i<3; i++) {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(120 + Math.random()*50, now + i*0.15);
+                        osc.frequency.linearRampToValueAtTime(70, now + i*0.15 + 0.12);
+                        gain.gain.setValueAtTime(0.15, now + i*0.15);
+                        gain.gain.linearRampToValueAtTime(0.01, now + i*0.15 + 0.12);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i*0.15);
+                        osc.stop(now + i*0.15 + 0.12);
+                    }
+                } catch(err) {
+                    console.warn(err);
+                }
+            }
+            playCatch() {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.linearRampToValueAtTime(50, now + 0.6);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                } catch(err) {
+                    console.warn(err);
+                }
+            }
+            playHiding() {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); // E5
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } catch(err) {
+                    console.warn(err);
+                }
+            }
+            playEscaped() {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const freqs = [523.25, 659.25, 783.99, 1046.50];
+                    freqs.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.08);
+                        osc.stop(now + idx * 0.08 + 0.2);
+                    });
+                } catch(err) {
+                    console.warn(err);
+                }
+            }
+        }
+        const sfx = new SoundEffects();
 
-        function appendMessage(role, text, isError = false) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-            
-            const bubble = document.createElement('div');
-            bubble.className = `message-bubble px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                isError ? 'bg-red-900/40 text-red-200 border border-red-800/50' :
-                role === 'user' 
-                ? 'bg-blue-600 text-white rounded-br-none' 
-                : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700/50'
-            }`;
-            
-            bubble.textContent = text;
-            wrapper.appendChild(bubble);
-            chatLog.appendChild(wrapper);
-            chatLog.scrollTop = chatLog.scrollHeight;
+        // --- 게임 전역 변수 및 설정 ---
+        let scene, camera, renderer;
+        let keys = { w: false, a: false, s: false, d: false, Shift: false };
+        let joystickInput = { x: 0, y: 0, active: false };
+        
+        let player;
+        let houses = [];
+        let bushes = [];
+        let owners = [];
+        
+        let score = 0;
+        let highScore = localStorage.getItem('bel_highscore') || 0;
+        let isGameOver = false;
+        let gameActive = false;
+        let animationFrameId = null;
+        
+        let playerStamina = 100;
+        const STAMINA_DRAIN = 35; // 초당 대시 소모량
+        const STAMINA_RECOVER = 18; // 초당 회복량
+        let isDashing = false;
+
+        // 맵 안전 가두리 경계 (플레이어가 맵 밖으로 안 벗어나게 가둠)
+        const WORLD_BOUNDS = 32;
+
+        // --- 초기화 및 실행 수립 ---
+        function startInit() {
+            document.getElementById('high-score-val').innerText = highScore;
+
+            // 시작 버튼 안전한 연결
+            const startBtn = document.getElementById('btn-start');
+            if (startBtn) {
+                startBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    sfx.init();
+                    document.getElementById('start-screen').classList.add('hidden');
+                    gameActive = true;
+                    initGame();
+                    
+                    // 루프 분리 관리로 렉 최소화
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                    animate();
+                });
+            }
+
+            // 재시작 버튼 안전한 연결
+            const restartBtn = document.getElementById('btn-restart');
+            if (restartBtn) {
+                restartBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('gameover-screen').classList.add('hidden');
+                    resetGame();
+                });
+            }
+
+            setupInputListeners();
         }
 
-        async function fetchAIResponse(userInput) {
-            const endpoint = "https://api.groq.com/openai/v1/chat/completions";
-            
-            for (let i = currentKeyIndex; i < GROQ_API_KEYS.length; i++) {
-                const apiKey = GROQ_API_KEYS[i];
-                
-                try {
-                    const response = await fetch(endpoint, {
-                        method: "POST",
-                        headers: {
-                            "Authorization": `Bearer ${apiKey}`,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            model: MODEL_ID,
-                            messages: [
-                                { 
-                                    role: "system", 
-                                    content: `당신의 캐릭터는 "${aiPersona}"입니다. 이 캐릭터의 말투와 성격에 완전히 몰입하여 한국어로 답변하세요. 너무 길지 않게 핵심만 말하되 캐릭터의 특징을 잘 보여주어야 합니다.` 
-                                },
-                                ...messageHistory,
-                                { role: "user", content: userInput }
-                            ],
-                            temperature: 0.8,
-                            max_tokens: 1500
-                        })
-                    });
+        // DOM 로드 완료 대응 시스템
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            startInit();
+        } else {
+            document.addEventListener('DOMContentLoaded', startInit);
+        }
 
-                    if (response.status === 429 || response.status === 401) {
-                        if (i < GROQ_API_KEYS.length - 1) {
-                            currentKeyIndex = i + 1;
-                            loadingText.textContent = "잠시만 기다려주세요 (회선 전환 중)...";
-                            continue;
+        // --- 3D 씬 및 화창한 낮 환경 초기화 ---
+        function initGame() {
+            scene = new THREE.Scene();
+            // 맑고 투명한 하늘빛(낮)으로 전격 전환
+            scene.background = new THREE.Color(0xbce6ff);
+            scene.fog = new THREE.FogExp2(0xbce6ff, 0.015);
+
+            // 쿼터뷰 시점 카메라
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            const container = document.getElementById('canvas-container');
+            container.innerHTML = ''; // 이전 잔여 요소 청소
+            
+            try {
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                container.appendChild(renderer.domElement);
+            } catch(e) {
+                console.error(e);
+                container.innerHTML = `<div class="flex items-center justify-center h-full text-red-500 font-bold bg-slate-900 p-4 text-center">3D 그래픽 초기화 실패. WebGL 지원 기기 및 최신 브라우저가 필요합니다.</div>`;
+                return;
+            }
+
+            // 주간 라이팅 설정 (태양광)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+            scene.add(ambientLight);
+
+            // 밝은 태양 빛 (Directional Sunlight)
+            const sunLight = new THREE.DirectionalLight(0xfffdf2, 1.1);
+            sunLight.position.set(30, 50, 15);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 150;
+            const d = 40;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            sunLight.shadow.bias = -0.0005;
+            scene.add(sunLight);
+
+            // 환경 구조물 생성
+            createStreetEnvironment();
+
+            // 플레이어 생성
+            createPlayerCharacter();
+
+            // 주택들 배치 (대문 도로 정면 배치 완료 - 수풀 생성 전 배치함으로써 집 위치 참조가 가능하게 합니다)
+            createNeighborhoodHouses();
+
+            // 장애물 및 수풀 배치
+            createObstaclesAndBushes();
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // --- 밝은 아스팔트, 인도 보도블록, 선명한 풀밭 제작 ---
+        function createStreetEnvironment() {
+            // 도로 폭 12 축소
+            const roadGeo = new THREE.PlaneGeometry(12, 80);
+            const roadMat = new THREE.MeshStandardMaterial({ 
+                color: 0x7a8296, 
+                roughness: 0.75 
+            });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.receiveShadow = true;
+            scene.add(road);
+
+            // 주황빛 중앙 차선선
+            const lineGeo = new THREE.PlaneGeometry(0.2, 4);
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+            for (let z = -35; z <= 35; z += 10) {
+                const line = new THREE.Mesh(lineGeo, lineMat);
+                line.rotation.x = -Math.PI / 2;
+                line.position.set(0, 0.015, z);
+                scene.add(line);
+            }
+
+            // 회색 인도 보도블록 지대 (폭 4씩 배정)
+            const leftSidewalkGeo = new THREE.PlaneGeometry(4, 80);
+            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.7 });
+            
+            const leftSidewalk = new THREE.Mesh(leftSidewalkGeo, sidewalkMat);
+            leftSidewalk.rotation.x = -Math.PI / 2;
+            leftSidewalk.position.set(-8, 0.03, 0); // 도로 x=-6 ~ 6 바깥 구역 (x=-10 ~ -6)
+            leftSidewalk.receiveShadow = true;
+            scene.add(leftSidewalk);
+
+            const rightSidewalk = leftSidewalk.clone();
+            rightSidewalk.position.set(8, 0.03, 0); // (x=6 ~ 10)
+            scene.add(rightSidewalk);
+
+            // 보도블록 데코 라인
+            const tileLineGeo = new THREE.PlaneGeometry(4, 0.06);
+            const tileLineMat = new THREE.MeshBasicMaterial({ color: 0x64748b });
+            for (let z = -40; z <= 40; z += 4) {
+                const lineL = new THREE.Mesh(tileLineGeo, tileLineMat);
+                lineL.rotation.x = -Math.PI / 2;
+                lineL.position.set(-8, 0.035, z);
+                scene.add(lineL);
+
+                const lineR = lineL.clone();
+                lineR.position.x = 8;
+                scene.add(lineR);
+            }
+
+            // 푸른 잔디 구역
+            const grassGeo = new THREE.PlaneGeometry(30, 80);
+            const grassMat = new THREE.MeshStandardMaterial({ color: 0x5ba856, roughness: 0.85 });
+            
+            const leftGrass = new THREE.Mesh(grassGeo, grassMat);
+            leftGrass.rotation.x = -Math.PI / 2;
+            leftGrass.position.set(-25, 0.02, 0);
+            leftGrass.receiveShadow = true;
+            scene.add(leftGrass);
+
+            const rightGrass = leftGrass.clone();
+            rightGrass.position.set(25, 0.02, 0);
+            scene.add(rightGrass);
+
+            // 장식 가로등
+            createStreetlight(-9.8, -25);
+            createStreetlight(9.8, 0);
+            createStreetlight(-9.8, 25);
+        }
+
+        function createStreetlight(x, z) {
+            const group = new THREE.Group();
+            group.position.set(x, 0, z);
+
+            const poleGeo = new THREE.CylinderGeometry(0.1, 0.14, 6, 8);
+            const poleMat = new THREE.MeshStandardMaterial({ color: 0x555e69, metalness: 0.6 });
+            const pole = new THREE.Mesh(poleGeo, poleMat);
+            pole.position.y = 3;
+            pole.castShadow = true;
+            group.add(pole);
+
+            const headGeo = new THREE.BoxGeometry(0.7, 0.4, 1.1);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0x414954 });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.set(0, 6, 0.4);
+            group.add(head);
+
+            const lampGeo = new THREE.BoxGeometry(0.5, 0.1, 0.7);
+            const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff3cc });
+            const lamp = new THREE.Mesh(lampGeo, lampMat);
+            lamp.position.set(0, 5.8, 0.4);
+            group.add(lamp);
+
+            const light = new THREE.PointLight(0xffea88, 0.3, 5);
+            light.position.set(0, 5.6, 0.4);
+            group.add(light);
+
+            scene.add(group);
+        }
+
+        // --- 은신용 수풀 및 쓰레기 상자 생성 (도로, 인도, 주택 영역 배제 랜덤 배치) ---
+        function createObstaclesAndBushes() {
+            bushes = [];
+            const numBushesToSpawn = 14; // 생성할 랜덤 수풀 개수
+
+            const leavesMat = new THREE.MeshStandardMaterial({ 
+                color: 0x48b85c, 
+                roughness: 0.8, 
+                flatShading: true 
+            });
+
+            // 집들의 위치 정보를 가져와 충돌 감지에 활용
+            const activeHouses = houses || [];
+
+            for (let i = 0; i < numBushesToSpawn; i++) {
+                let placed = false;
+                let attempts = 0;
+                let spawnX = 0;
+                let spawnZ = 0;
+
+                while (!placed && attempts < 100) {
+                    attempts++;
+                    
+                    // 왼쪽 잔디밭(-28 ~ -11.5) 혹은 오른쪽 잔디밭(11.5 ~ 28)에만 생성되도록 좌표 보장 (인도와 도로 원천 제외)
+                    const isLeft = Math.random() < 0.5;
+                    if (isLeft) {
+                        spawnX = -28 + Math.random() * 16.5; 
+                    } else {
+                        spawnX = 11.5 + Math.random() * 16.5; 
+                    }
+                    
+                    spawnZ = -35 + Math.random() * 70; // -35 ~ 35 범위 안에서 랜덤
+
+                    // 충돌 검사 1: 집 및 초인종 영역 침범 방지
+                    let collidesWithHouse = false;
+                    for (let house of activeHouses) {
+                        // 집 본체(8x8 박스) + 마진 고려하여 반경 6.5 이내면 재생성
+                        if (Math.abs(spawnX - house.position.x) < 6.5 && Math.abs(spawnZ - house.position.z) < 6.5) {
+                            collidesWithHouse = true;
+                            break;
+                        }
+                        // 집 대문 앞 벨 및 상호작용 구역 보호
+                        if (house.bellPosition) {
+                            const distToBell = new THREE.Vector2(spawnX, spawnZ).distanceTo(new THREE.Vector2(house.bellPosition.x, house.bellPosition.z));
+                            if (distToBell < 3.5) {
+                                collidesWithHouse = true;
+                                break;
+                            }
                         }
                     }
 
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.error?.message || "서버 응답 오류");
-                    
-                    return result.choices[0].message.content;
+                    if (collidesWithHouse) continue;
 
-                } catch (err) {
-                    if (i === GROQ_API_KEYS.length - 1) throw err;
-                    currentKeyIndex = i + 1;
+                    // 충돌 검사 2: 기존 수풀들과 겹치지 않게 배치
+                    let tooCloseToOtherBush = false;
+                    for (let other of bushes) {
+                        const distToOther = new THREE.Vector3(spawnX, 0, spawnZ).distanceTo(other.position);
+                        if (distToOther < 4.0) {
+                            tooCloseToOtherBush = true;
+                            break;
+                        }
+                    }
+
+                    if (tooCloseToOtherBush) continue;
+
+                    // 충돌 검사 3: 시작 리스폰 지점(플레이어 스폰 위치)과 겹치지 않도록 보호
+                    const distToSpawn = new THREE.Vector3(spawnX, 0, spawnZ).distanceTo(new THREE.Vector3(0, 0, 25));
+                    if (distToSpawn < 5.0) continue;
+
+                    // 모든 안전 검증 통과 시 위치 확정
+                    placed = true;
+                }
+
+                if (placed) {
+                    const group = new THREE.Group();
+                    group.position.set(spawnX, 0, spawnZ);
+
+                    const geo1 = new THREE.SphereGeometry(1.0, 8, 8);
+                    const m1 = new THREE.Mesh(geo1, leavesMat);
+                    m1.position.set(0, 0.6, 0);
+                    m1.castShadow = true;
+                    group.add(m1);
+
+                    const geo2 = new THREE.SphereGeometry(0.8, 8, 8);
+                    const m2 = new THREE.Mesh(geo2, leavesMat);
+                    m2.position.set(-0.5, 0.5, 0.3);
+                    m2.castShadow = true;
+                    group.add(m2);
+
+                    const m3 = new THREE.Mesh(geo2, leavesMat);
+                    m3.position.set(0.5, 0.5, -0.3);
+                    m3.castShadow = true;
+                    group.add(m3);
+
+                    const ringGeo = new THREE.RingGeometry(1.4, 1.5, 16);
+                    const ringMat = new THREE.MeshBasicMaterial({ 
+                        color: 0x2ecc71, 
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = -Math.PI / 2;
+                    ring.position.y = 0.05;
+                    group.add(ring);
+
+                    scene.add(group);
+                    
+                    bushes.push({
+                        mesh: group,
+                        radius: 1.6,
+                        position: group.position
+                    });
+                }
+            }
+
+            // 쓰레기통 장애물도 인도와 도로가 아닌 안전한 풀밭 양옆 공간에 랜덤 분산 배치
+            const binLocations = [];
+            const numBins = 4;
+            for (let i = 0; i < numBins; i++) {
+                let placed = false;
+                let attempts = 0;
+                while (!placed && attempts < 100) {
+                    attempts++;
+                    const isLeft = Math.random() < 0.5;
+                    const binX = isLeft ? (-25 + Math.random() * 12) : (13 + Math.random() * 12);
+                    const binZ = -30 + Math.random() * 60;
+
+                    let collides = false;
+                    for (let house of activeHouses) {
+                        if (Math.abs(binX - house.position.x) < 6.0 && Math.abs(binZ - house.position.z) < 6.0) {
+                            collides = true;
+                            break;
+                        }
+                    }
+                    for (let bush of bushes) {
+                        const distToBush = new THREE.Vector3(binX, 0, binZ).distanceTo(bush.position);
+                        if (distToBush < 3.5) {
+                            collides = true;
+                            break;
+                        }
+                    }
+
+                    if (!collides) {
+                        binLocations.push({x: binX, z: binZ});
+                        placed = true;
+                    }
+                }
+            }
+
+            binLocations.forEach(loc => {
+                const binGroup = new THREE.Group();
+                binGroup.position.set(loc.x, 0, loc.z);
+
+                const binGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 8);
+                const binMat = new THREE.MeshStandardMaterial({ color: 0x90a4ae, metalness: 0.2, roughness: 0.6 });
+                const bin = new THREE.Mesh(binGeo, binMat);
+                bin.position.y = 0.6;
+                bin.castShadow = true;
+                bin.receiveShadow = true;
+                binGroup.add(bin);
+
+                const capGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.15, 8);
+                const cap = new THREE.Mesh(capGeo, binMat);
+                cap.position.y = 1.25;
+                cap.castShadow = true;
+                binGroup.add(cap);
+
+                scene.add(binGroup);
+            });
+        }
+
+        // --- 플레이어 캐릭터 생성 ---
+        function createPlayerCharacter() {
+            player = new THREE.Group();
+            player.position.set(0, 0, 25); // 안전 스폰 좌표 설정
+
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff7043, roughness: 0.5 }); 
+            const pantsMat = new THREE.MeshStandardMaterial({ color: 0x37474f, roughness: 0.6 });
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd54f, roughness: 0.6 }); 
+            const capMat = new THREE.MeshStandardMaterial({ color: 0xffca28 }); 
+            const shoeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+            const bodyGeo = new THREE.BoxGeometry(0.6, 0.8, 0.4);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.9;
+            body.castShadow = true;
+            player.add(body);
+
+            const headGeo = new THREE.BoxGeometry(0.45, 0.45, 0.45);
+            const head = new THREE.Mesh(headGeo, skinMat);
+            head.position.y = 1.5;
+            head.castShadow = true;
+            player.add(head);
+
+            const capGeo = new THREE.BoxGeometry(0.48, 0.15, 0.48);
+            const cap = new THREE.Mesh(capGeo, capMat);
+            cap.position.y = 1.73;
+            player.add(cap);
+
+            const visorGeo = new THREE.BoxGeometry(0.48, 0.05, 0.25);
+            const visor = new THREE.Mesh(visorGeo, capMat);
+            visor.position.set(0, 1.7, 0.25);
+            player.add(visor);
+
+            const legGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.5, 8);
+            player.leftLeg = new THREE.Mesh(legGeo, pantsMat);
+            player.leftLeg.position.set(-0.18, 0.25, 0);
+            player.leftLeg.castShadow = true;
+            player.add(player.leftLeg);
+
+            player.rightLeg = player.leftLeg.clone();
+            player.rightLeg.position.x = 0.18;
+            player.add(player.rightLeg);
+
+            const footGeo = new THREE.BoxGeometry(0.15, 0.12, 0.25);
+            const leftFoot = new THREE.Mesh(footGeo, shoeMat);
+            leftFoot.position.set(-0.18, 0.06, 0.05);
+            leftFoot.castShadow = true;
+            player.add(leftFoot);
+
+            const rightFoot = leftFoot.clone();
+            rightFoot.position.x = 0.18;
+            player.add(rightFoot);
+
+            scene.add(player);
+
+            player.speed = 5.2;
+            player.dashSpeed = 9.5;
+            player.rotationSpeed = 12;
+            player.isHidden = false;
+            player.currentRingTarget = null;
+        }
+
+        // --- 집 물리 충돌 감지 AABB 슬라이딩 물리 ---
+        function checkHouseCollision(x, z, radius = 0.45) {
+            for (let house of houses) {
+                const hX = house.position.x;
+                const hZ = house.position.z;
+                // 집 박스 크기(8x8x6)에 가깝게 AABB 절반 폭 정의
+                const halfW = 4.0;
+                const halfD = 4.0;
+
+                // 충돌 검사용 가장 가까운 좌표 계산
+                const closestX = Math.max(hX - halfW, Math.min(x, hX + halfW));
+                const closestZ = Math.max(hZ - halfD, Math.min(z, hZ + halfD));
+
+                const distX = x - closestX;
+                const distZ = z - closestZ;
+                const distSq = (distX * distX) + (distZ * distZ);
+
+                // 플레이어가 집 충돌 범위 안쪽으로 뚫고 들어가면 true 반환
+                if (distSq < radius * radius) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // --- 집 및 문앞 초인종 영역 생성 (대문 도로 정면 정렬 완료) ---
+        function createNeighborhoodHouses() {
+            houses = [];
+
+            const houseDefs = [
+                {
+                    id: 1,
+                    side: 'left',
+                    x: -15, z: -18,
+                    wallColor: 0xffffff, // 화이트 하우스
+                    roofColor: 0xe53935,
+                    ownerName: "버럭 아저씨",
+                    difficulty: 1.0
+                },
+                {
+                    id: 2,
+                    side: 'right',
+                    x: 15, z: 0,
+                    wallColor: 0xffe082, // 벽돌 주택
+                    roofColor: 0x455a64,
+                    ownerName: "깐깐한 할아버지",
+                    difficulty: 1.3
+                },
+                {
+                    id: 3,
+                    side: 'left',
+                    x: -15, z: 18,
+                    wallColor: 0xc5cae9, // 파스텔 주택
+                    roofColor: 0x1565c0,
+                    ownerName: "눈빛 매서운 이모",
+                    difficulty: 1.6
+                }
+            ];
+
+            houseDefs.forEach(def => {
+                const group = new THREE.Group();
+                group.position.set(def.x, 0, def.z);
+
+                // 1. 주택 메인 빌딩
+                const bodyGeo = new THREE.BoxGeometry(8, 6, 8);
+                const bodyMat = new THREE.MeshStandardMaterial({ color: def.wallColor, roughness: 0.6 });
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                body.position.y = 3;
+                body.castShadow = true;
+                body.receiveShadow = true;
+                group.add(body);
+
+                // 2. 고깔 지붕
+                const roofGeo = new THREE.ConeGeometry(7, 3, 4);
+                const roofMat = new THREE.MeshStandardMaterial({ color: def.roofColor, roughness: 0.5 });
+                const roof = new THREE.Mesh(roofGeo, roofMat);
+                roof.position.y = 7.5;
+                roof.rotation.y = Math.PI / 4;
+                roof.castShadow = true;
+                group.add(roof);
+
+                // 3. 인도 정면 방향 우드 대문 (슬라이딩 하강 문)
+                // 왼쪽 집은 +X를, 오른쪽 집은 -X를 향함
+                const doorGeo = new THREE.BoxGeometry(0.2, 2.8, 1.6);
+                const doorMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.85 });
+                const door = new THREE.Mesh(doorGeo, doorMat);
+                
+                const doorXPos = def.side === 'left' ? 4.1 : -4.1;
+                door.position.set(doorXPos, 1.4, 0);
+                door.castShadow = true;
+                group.add(door);
+
+                // 4. 대문 바로 옆 초인종 우체통 기둥 배치
+                const pillarGeo = new THREE.BoxGeometry(0.8, 2.5, 0.8);
+                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x78909c });
+                const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+                // 대문 살짝 뒤(Z=1.2)에 배치해 조화롭게 설계
+                pillar.position.set(doorXPos, 1.25, 1.2);
+                pillar.castShadow = true;
+                group.add(pillar);
+
+                // 빨간색 벨 단추 메쉬
+                const buttonGeo = new THREE.BoxGeometry(0.15, 0.2, 0.15);
+                const buttonMat = new THREE.MeshBasicMaterial({ color: 0xe53935 });
+                const button = new THREE.Mesh(buttonGeo, buttonMat);
+                const faceOffset = def.side === 'left' ? 0.42 : -0.42;
+                button.position.set(doorXPos + faceOffset, 1.5, 1.2);
+                group.add(button);
+
+                // 5. [수정 완료] 완벽한 대문 앞 인도 초인종 벨 누르기 영역 정의
+                // 이제 실제 대문 앞(인도 영역 x = -8.5 / 8.5)에 상호작용 트리거가 연동됩니다.
+                const bellWorldX = def.side === 'left' ? -8.5 : 8.5;
+                const bellWorldZ = def.z;
+
+                const zoneGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.05, 16);
+                const zoneMat = new THREE.MeshBasicMaterial({
+                    color: 0xffb300,
+                    transparent: true,
+                    opacity: 0.5,
+                    depthWrite: false
+                });
+                const bellZone = new THREE.Mesh(zoneGeo, zoneMat);
+                bellZone.position.set(bellWorldX, 0.055, bellWorldZ);
+                scene.add(bellZone);
+
+                scene.add(group);
+
+                const houseObj = {
+                    id: def.id,
+                    side: def.side,
+                    position: group.position,
+                    bellPosition: new THREE.Vector3(bellWorldX, 0.05, bellWorldZ),
+                    doorMesh: door,
+                    localDoorX: doorXPos,
+                    initialDoorY: 1.4, // 기본 높이값 저장
+                    ownerName: def.ownerName,
+                    difficulty: def.difficulty,
+                    hasBeenRung: false,
+                    cooldownTimer: 0
+                };
+
+                houses.push(houseObj);
+
+                // 각 집마다의 AI 집주인 출현 등록
+                createHouseOwner(houseObj);
+            });
+        }
+
+        // --- 성난 집주인 NPC 생성 및 시야 레이저 설정 ---
+        function createHouseOwner(house) {
+            const owner = new THREE.Group();
+            // 기본은 집 본체 중앙 숨김 상태
+            owner.position.set(house.position.x, 0, house.position.z);
+            owner.visible = false;
+
+            const suitColor = house.id === 2 ? 0x1e88e5 : (house.id === 3 ? 0x8e24aa : 0xe53935);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.5 });
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffcca3 });
+            const hairMat = new THREE.MeshStandardMaterial({ color: 0x37474f });
+
+            // 몸통
+            const bodyGeo = new THREE.BoxGeometry(0.8, 1.1, 0.6);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1.05;
+            body.castShadow = true;
+            owner.add(body);
+
+            // 머리
+            const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const head = new THREE.Mesh(headGeo, skinMat);
+            head.position.y = 1.8;
+            head.castShadow = true;
+            owner.add(head);
+
+            // 머리칼
+            const hairGeo = new THREE.BoxGeometry(0.55, 0.25, 0.55);
+            const hair = new THREE.Mesh(hairGeo, hairMat);
+            hair.position.y = 2.1;
+            owner.add(hair);
+
+            // 화난 눈썹
+            const browGeo = new THREE.BoxGeometry(0.1, 0.08, 0.4);
+            const brow = new THREE.Mesh(browGeo, hairMat);
+            const faceDir = house.side === 'left' ? 0.26 : -0.26;
+            brow.position.set(faceDir, 1.9, 0);
+            owner.add(brow);
+
+            // 다리
+            const legGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.6, 8);
+            const leftLeg = new THREE.Mesh(legGeo, bodyMat);
+            leftLeg.position.set(0, 0.3, -0.2);
+            leftLeg.castShadow = true;
+            owner.add(leftLeg);
+
+            const rightLeg = leftLeg.clone();
+            rightLeg.position.z = 0.2;
+            owner.add(rightLeg);
+
+            // 주간용 경고 시야 서치 레이저 빔
+            const visionGroup = new THREE.Group();
+            visionGroup.position.set(faceDir * 1.3, 1.7, 0);
+
+            const coneGeo = new THREE.ConeGeometry(3.2, 13, 16, 1, true); 
+            const coneMat = new THREE.MeshBasicMaterial({
+                color: 0xff3d00,
+                transparent: true,
+                opacity: 0.25,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const visionCone = new THREE.Mesh(coneGeo, coneMat);
+            // 시야 콘이 집 옆쪽(도로 방향)을 쏘게 설정
+            visionCone.rotation.z = house.side === 'left' ? -Math.PI / 2 : Math.PI / 2;
+            visionCone.position.set(faceDir * 25, 0, 0); 
+            visionGroup.add(visionCone);
+
+            owner.add(visionGroup);
+            scene.add(owner);
+
+            // 집에서 인도 밖으로 나오는 목표 지점
+            const exitXOffset = house.side === 'left' ? 5.2 : -5.2;
+
+            const ownerState = {
+                mesh: owner,
+                house: house,
+                state: 'idle',
+                speed: 4.8 * house.difficulty,
+                angryBGMTriggered: false,
+                homePos: new THREE.Vector3(house.position.x, 0, house.position.z),
+                exitTargetPos: new THREE.Vector3(house.position.x + exitXOffset, 0, house.position.z), // 대문 밖
+                patrolWaypoints: [
+                    new THREE.Vector3(house.bellPosition.x, 0, house.bellPosition.z), // 초인종 앞 조사
+                    new THREE.Vector3(0, 0, house.position.z),                       // 도로 한복판 전진 수색
+                    new THREE.Vector3(0, 0, house.position.z + (house.side === 'left' ? 8 : -8)) // 주변 탐색
+                ],
+                currentWaypointIdx: 0,
+                timer: 0,
+                visionAngle: 0.7
+            };
+
+            owners.push(ownerState);
+        }
+
+        // --- 입력 감지 바인딩 ---
+        function setupInputListeners() {
+            window.addEventListener('keydown', (e) => {
+                if (!gameActive) return;
+                const key = e.key.toLowerCase();
+                if (key === 'w' || e.key === 'ArrowUp') keys.w = true;
+                if (key === 'a' || e.key === 'ArrowLeft') keys.a = true;
+                if (key === 's' || e.key === 'ArrowDown') keys.s = true;
+                if (key === 'd' || e.key === 'ArrowRight') keys.d = true;
+                if (e.key === 'Shift') keys.Shift = true;
+                
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    triggerDoorbellEvent();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if (key === 'w' || e.key === 'ArrowUp') keys.w = false;
+                if (key === 'a' || e.key === 'ArrowLeft') keys.a = false;
+                if (key === 's' || e.key === 'ArrowDown') keys.s = false;
+                if (key === 'd' || e.key === 'ArrowRight') keys.d = false;
+                if (e.key === 'Shift') keys.Shift = false;
+            });
+
+            const btnDash = document.getElementById('btn-dash');
+            const btnRing = document.getElementById('btn-ring');
+
+            if (btnDash) {
+                btnDash.addEventListener('touchstart', (e) => { e.preventDefault(); keys.Shift = true; });
+                btnDash.addEventListener('touchend', (e) => { e.preventDefault(); keys.Shift = false; });
+                btnDash.addEventListener('mousedown', () => { keys.Shift = true; });
+                btnDash.addEventListener('mouseup', () => { keys.Shift = false; });
+            }
+
+            if (btnRing) {
+                btnRing.addEventListener('touchstart', (e) => { e.preventDefault(); triggerDoorbellEvent(); });
+                btnRing.addEventListener('click', () => { triggerDoorbellEvent(); });
+            }
+
+            const joystickZone = document.getElementById('joystick-zone');
+            const joystickHandle = document.getElementById('joystick-handle');
+            let joystickRect = null;
+
+            function handleJoystickMove(clientX, clientY) {
+                if (!joystickRect) return;
+                const centerX = joystickRect.left + joystickRect.width / 2;
+                const centerY = joystickRect.top + joystickRect.height / 2;
+                const maxDist = joystickRect.width / 2;
+
+                let dx = clientX - centerX;
+                let dy = clientY - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > 0) {
+                    dx /= distance;
+                    dy /= distance;
+                    const amount = Math.min(distance, maxDist);
+                    
+                    joystickHandle.style.left = `calc(50% + ${dx * amount}px - 1.5rem)`;
+                    joystickHandle.style.top = `calc(50% + ${dy * amount}px - 1.5rem)`;
+
+                    const normalizedIntensity = amount / maxDist;
+                    joystickInput.x = dx * normalizedIntensity;
+                    joystickInput.y = dy * normalizedIntensity;
+                    joystickInput.active = true;
+                }
+            }
+
+            if (joystickZone) {
+                joystickZone.addEventListener('touchstart', (e) => {
+                    joystickRect = joystickZone.getBoundingClientRect();
+                    handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+                });
+
+                joystickZone.addEventListener('touchmove', (e) => {
+                    if (e.touches.length > 0) {
+                        handleJoystickMove(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                });
+
+                joystickZone.addEventListener('touchend', () => {
+                    resetJoystickUI();
+                });
+
+                joystickZone.addEventListener('mousedown', (e) => {
+                    joystickRect = joystickZone.getBoundingClientRect();
+                    const mouseMoveHandler = (evt) => {
+                        handleJoystickMove(evt.clientX, evt.clientY);
+                    };
+                    const mouseUpHandler = () => {
+                        resetJoystickUI();
+                        window.removeEventListener('mousemove', mouseMoveHandler);
+                        window.removeEventListener('mouseup', mouseUpHandler);
+                    };
+                    window.addEventListener('mousemove', mouseMoveHandler);
+                    window.addEventListener('mouseup', mouseUpHandler);
+                    handleJoystickMove(e.clientX, e.clientY);
+                });
+            }
+
+            function resetJoystickUI() {
+                joystickHandle.style.left = '50%';
+                joystickHandle.style.top = '50%';
+                joystickHandle.style.transform = 'translate(-50%, -50%)';
+                joystickInput.x = 0;
+                joystickInput.y = 0;
+                joystickInput.active = false;
+            }
+        }
+
+        function onWindowResize() {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        function triggerDoorbellEvent() {
+            if (isGameOver || !gameActive) return;
+            if (player.currentRingTarget) {
+                const target = player.currentRingTarget;
+                if (!target.hasBeenRung && target.cooldownTimer <= 0) {
+                    target.hasBeenRung = true;
+                    sfx.playBell();
+
+                    document.getElementById('interaction-prompt').classList.add('hidden');
+                    document.getElementById('btn-ring').classList.add('hidden');
+
+                    setTimeout(() => {
+                        triggerOwnerEmergence(target);
+                    }, 1100);
                 }
             }
         }
 
-        async function handleSendMessage() {
-            const content = chatInput.value.trim();
-            if (!content || sendBtn.disabled) return;
+        // --- 대문 아래 하강 방식 개방 및 집주인 돌출 ---
+        function triggerOwnerEmergence(house) {
+            const ownerObj = owners.find(o => o.house.id === house.id);
+            if (!ownerObj) return;
 
-            appendMessage('user', content);
-            chatInput.value = "";
-            sendBtn.disabled = true;
-            loadingUi.classList.remove('hidden');
-            loadingText.textContent = "AI가 생각하고 있어요...";
+            sfx.playAngry();
 
-            try {
-                const responseText = await fetchAIResponse(content);
-                
-                messageHistory.push({ role: "user", content: content });
-                messageHistory.push({ role: "assistant", content: responseText });
-                if (messageHistory.length > 10) messageHistory.splice(0, 2);
+            // 대문이 바닥 속 밑바닥(-1.4)으로 완전히 슬라이딩 전격 하강개방
+            const doorSlide = setInterval(() => {
+                if (house.doorMesh.position.y > -1.4) {
+                    house.doorMesh.position.y -= 0.15;
+                } else {
+                    house.doorMesh.position.y = -1.4;
+                    clearInterval(doorSlide);
+                }
+            }, 30);
 
-                appendMessage('ai', responseText);
-            } catch (error) {
-                appendMessage('ai', `⚠️ 에러가 발생했어요: ${error.message}`, true);
-            } finally {
-                loadingUi.classList.add('hidden');
-                sendBtn.disabled = false;
-                chatInput.focus();
+            // 주인이 대문 바로 앞 좌표에 실시간 스폰
+            ownerObj.mesh.visible = true;
+            ownerObj.mesh.position.set(house.position.x + house.localDoorX, 0, house.position.z);
+            ownerObj.state = 'coming_out';
+            ownerObj.timer = 0;
+        }
+
+        // --- 메인 렌더링 프레임 루프 ---
+        const clock = new THREE.Clock();
+        function animate() {
+            if (isGameOver) return;
+            animationFrameId = requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            if (gameActive) {
+                updatePlayer(delta);
+                updateEnvironment(delta);
+                updateOwnerAI(delta);
+                checkCollisions();
+            }
+
+            if (player && camera) {
+                const targetCamPos = new THREE.Vector3(
+                    player.position.x,
+                    player.position.y + 11,
+                    player.position.z + 9
+                );
+                camera.position.lerp(targetCamPos, 0.1);
+                camera.lookAt(player.position.x, player.position.y + 1, player.position.z - 1.5);
+            }
+
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
             }
         }
 
-        savePersonaBtn.onclick = () => {
-            const val = personaInput.value.trim();
-            if (val) {
-                aiPersona = val;
-                personaModal.classList.add('hidden');
-                chatLog.innerHTML = ""; 
-                messageHistory = [];
-                appendMessage('ai', `대화를 시작합니다.`);
+        // --- 플레이어 움직임 및 물리 충돌 보정 (집 통과 불가 슬라이딩 물리 탑재) ---
+        function updatePlayer(delta) {
+            let dx = 0;
+            let dz = 0;
+
+            if (keys.w) dz -= 1;
+            if (keys.s) dz += 1;
+            if (keys.a) dx -= 1;
+            if (keys.d) dx += 1;
+
+            if (joystickInput.active) {
+                dx = joystickInput.x;
+                dz = joystickInput.y;
             }
-        };
 
-        personaBtn.onclick = () => {
-            personaModal.classList.remove('hidden');
-        };
+            const moveMagnitude = Math.sqrt(dx * dx + dz * dz);
+            let actualSpeed = player.speed;
 
-        sendBtn.onclick = handleSendMessage;
-        chatInput.onkeydown = (e) => {
-            if (e.key === 'Enter') handleSendMessage();
-        };
+            if (keys.Shift && moveMagnitude > 0.05 && playerStamina > 0) {
+                actualSpeed = player.dashSpeed;
+                playerStamina = Math.max(0, playerStamina - STAMINA_DRAIN * delta);
+                isDashing = true;
+            } else {
+                playerStamina = Math.min(100, playerStamina + STAMINA_RECOVER * delta);
+                isDashing = false;
+            }
 
+            document.getElementById('stamina-bar').style.width = `${playerStamina}%`;
+            document.getElementById('stamina-percent').innerText = `${Math.round(playerStamina)}%`;
+
+            if (moveMagnitude > 0.05) {
+                const moveX = (dx / moveMagnitude) * actualSpeed * delta;
+                const moveZ = (dz / moveMagnitude) * delta * actualSpeed;
+
+                const nextX = player.position.x + moveX;
+                const nextZ = player.position.z + moveZ;
+
+                // [수정 핵심]: 집과 충돌하지 않는 경우에만 미끄러지듯 이동 (X축, Z축을 나누어 검사하여 벽면 미끄러짐 제공)
+                if (Math.abs(nextX) < WORLD_BOUNDS) {
+                    if (!checkHouseCollision(nextX, player.position.z)) {
+                        player.position.x = nextX;
+                    }
+                }
+                if (Math.abs(nextZ) < WORLD_BOUNDS) {
+                    if (!checkHouseCollision(player.position.x, nextZ)) {
+                        player.position.z = nextZ;
+                    }
+                }
+
+                // 회전각 조정
+                const targetRotation = Math.atan2(dx, dz);
+                let diff = targetRotation - player.rotation.y;
+                diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+                player.rotation.y += diff * player.rotationSpeed * delta;
+
+                const swingSpeed = isDashing ? 18 : 11;
+                player.leftLeg.rotation.x = Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
+                player.rightLeg.rotation.x = -Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
+            } else {
+                player.leftLeg.rotation.x = 0;
+                player.rightLeg.rotation.x = 0;
+            }
+
+            // 수풀 은신 탐지
+            let insideBush = false;
+            bushes.forEach(bush => {
+                const distance = player.position.distanceTo(bush.position);
+                if (distance < bush.radius) {
+                    insideBush = true;
+                }
+            });
+
+            if (insideBush && !player.isHidden) {
+                player.isHidden = true;
+                sfx.playHiding();
+                player.traverse(node => {
+                    if (node.isMesh) {
+                        node.material.transparent = true;
+                        node.material.opacity = 0.45;
+                    }
+                });
+            } else if (!insideBush && player.isHidden) {
+                player.isHidden = false;
+                player.traverse(node => {
+                    if (node.isMesh) {
+                        node.material.transparent = false;
+                        node.material.opacity = 1.0;
+                    }
+                });
+            }
+        }
+
+        // --- 상호작용 및 대문 쿨타임 제어 ---
+        function updateEnvironment(delta) {
+            let nearBell = false;
+            let targetHouse = null;
+
+            houses.forEach(house => {
+                if (house.cooldownTimer > 0) {
+                    house.cooldownTimer -= delta;
+                    if (house.cooldownTimer <= 0) {
+                        house.hasBeenRung = false;
+                        
+                        // 집 내부로 들어갔을 때 슬라이딩 대문을 다시 상승시켜 닫음
+                        const doorClose = setInterval(() => {
+                            if (house.doorMesh.position.y < house.initialDoorY) {
+                                house.doorMesh.position.y += 0.12;
+                            } else {
+                                house.doorMesh.position.y = house.initialDoorY;
+                                clearInterval(doorClose);
+                            }
+                        }, 30);
+                    }
+                }
+
+                // 대문 바로 앞(인도 영역)에 정확히 연계된 거리 판정
+                const distToBell = player.position.distanceTo(house.bellPosition);
+                if (distToBell < 1.6 && !house.hasBeenRung) {
+                    nearBell = true;
+                    targetHouse = house;
+                }
+            });
+
+            if (nearBell && !isGameOver) {
+                player.currentRingTarget = targetHouse;
+                document.getElementById('interaction-prompt').classList.remove('hidden');
+                document.getElementById('btn-ring').classList.remove('hidden');
+            } else {
+                player.currentRingTarget = null;
+                document.getElementById('interaction-prompt').classList.add('hidden');
+                document.getElementById('btn-ring').classList.add('hidden');
+            }
+        }
+
+        // --- 집주인 추격 AI 상태 머신 ---
+        function updateOwnerAI(delta) {
+            let chasingCount = 0;
+
+            owners.forEach(owner => {
+                if (!owner.mesh.visible) return;
+
+                const distToPlayer = owner.mesh.position.distanceTo(player.position);
+
+                switch (owner.state) {
+                    case 'coming_out':
+                        // 대문 밖 인도 영역으로 전진
+                        moveObjectToward(owner.mesh, owner.exitTargetPos, owner.speed * 0.8, delta);
+                        if (owner.mesh.position.distanceTo(owner.exitTargetPos) < 0.25) {
+                            owner.state = 'patrol_search';
+                            owner.currentWaypointIdx = 0;
+                            owner.timer = 0;
+                        }
+                        break;
+
+                    case 'patrol_search':
+                        const targetPt = owner.patrolWaypoints[owner.currentWaypointIdx];
+                        moveObjectToward(owner.mesh, targetPt, owner.speed * 0.55, delta);
+
+                        const visionGroup = owner.mesh.children.find(c => c.type === "Group");
+                        if (visionGroup) {
+                            visionGroup.rotation.y = Math.sin(clock.getElapsedTime() * 4.5) * 0.45;
+                        }
+
+                        if (owner.mesh.position.distanceTo(targetPt) < 0.35) {
+                            owner.currentWaypointIdx++;
+                            if (owner.currentWaypointIdx >= owner.patrolWaypoints.length) {
+                                owner.state = 'returning';
+                                if (owner.angryBGMTriggered) {
+                                    owner.angryBGMTriggered = false;
+                                }
+                                sfx.playEscaped();
+                                addScore(); 
+                            }
+                        }
+
+                        if (checkPlayerInVision(owner)) {
+                            owner.state = 'chasing';
+                            owner.angryBGMTriggered = true;
+                        }
+                        break;
+
+                    case 'chasing':
+                        chasingCount++;
+                        lookAtTarget(owner.mesh, player.position);
+                        moveObjectToward(owner.mesh, player.position, owner.speed * 1.35, delta);
+
+                        if (player.isHidden || distToPlayer > 18) {
+                            owner.state = 'patrol_search';
+                            owner.currentWaypointIdx = 1; 
+                        }
+                        break;
+
+                    case 'returning':
+                        // 대문 문틈 사이로 복귀
+                        const homeEntrance = new THREE.Vector3(owner.house.position.x + owner.house.localDoorX, 0, owner.house.position.z);
+                        moveObjectToward(owner.mesh, homeEntrance, owner.speed * 0.7, delta);
+                        if (owner.mesh.position.distanceTo(homeEntrance) < 0.35) {
+                            owner.mesh.visible = false;
+                            owner.state = 'idle';
+                            owner.house.cooldownTimer = 8.0; // 쿨다운 8초 설정
+                        }
+                        break;
+                }
+            });
+
+            const warningBanner = document.getElementById('warning-banner');
+            if (chasingCount > 0) {
+                warningBanner.classList.remove('hidden');
+            } else {
+                warningBanner.classList.add('hidden');
+            }
+        }
+
+        // --- 시야 서치 레이저 탐지 연산 ---
+        function checkPlayerInVision(owner) {
+            if (player.isHidden) return false;
+
+            const ownerPos = owner.mesh.position;
+            const playerPos = player.position;
+
+            const dist = ownerPos.distanceTo(playerPos);
+            if (dist > 13.5) return false; 
+
+            // 주인이 바라보는 정면 벡터 계산 (왼쪽/오른쪽 집에 맞춰 설계)
+            const forwardX = owner.house.side === 'left' ? 1 : -1;
+            const forward = new THREE.Vector3(forwardX, 0, 0).applyQuaternion(owner.mesh.quaternion).normalize();
+            const toPlayer = new THREE.Vector3().subVectors(playerPos, ownerPos).normalize();
+
+            const angle = forward.angleTo(toPlayer);
+            return angle < owner.visionAngle;
+        }
+
+        function moveObjectToward(mesh, targetPos, speed, delta) {
+            lookAtTarget(mesh, targetPos);
+            const dir = new THREE.Vector3().subVectors(targetPos, mesh.position).normalize();
+            const step = speed * delta;
+            
+            const dist = mesh.position.distanceTo(targetPos);
+            if (dist > step) {
+                mesh.position.addScaledVector(dir, step);
+            } else {
+                mesh.position.copy(targetPos);
+            }
+        }
+
+        function lookAtTarget(mesh, targetPos) {
+            const lookTarget = new THREE.Vector3(targetPos.x, mesh.position.y, targetPos.z);
+            mesh.lookAt(lookTarget);
+        }
+
+        // --- 최종 피격/잡힘 판정 ---
+        function checkCollisions() {
+            if (isGameOver) return;
+
+            owners.forEach(owner => {
+                if (!owner.mesh.visible) return;
+
+                const dist = owner.mesh.position.distanceTo(player.position);
+                if (dist < 0.85) {
+                    triggerGameOver();
+                }
+            });
+        }
+
+        function addScore() {
+            score++;
+            document.getElementById('score-val').innerText = score;
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('bel_highscore', highScore);
+                document.getElementById('high-score-val').innerText = highScore;
+            }
+        }
+
+        function triggerGameOver() {
+            isGameOver = true;
+            sfx.playCatch();
+
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-highscore').innerText = highScore;
+            document.getElementById('gameover-screen').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            score = 0;
+            playerStamina = 100;
+            isGameOver = false;
+            
+            document.getElementById('score-val').innerText = '0';
+            document.getElementById('stamina-bar').style.width = '100%';
+
+            player.position.set(0, 0, 25);
+            player.rotation.set(0, 0, 0);
+            player.isHidden = false;
+            player.traverse(node => {
+                if (node.isMesh) {
+                    node.material.transparent = false;
+                    node.material.opacity = 1.0;
+                }
+            });
+
+            houses.forEach(house => {
+                house.hasBeenRung = false;
+                house.cooldownTimer = 0;
+                house.doorMesh.position.y = house.initialDoorY; 
+            });
+
+            owners.forEach(owner => {
+                owner.mesh.visible = false;
+                owner.state = 'idle';
+                owner.mesh.position.copy(owner.homePos);
+            });
+
+            document.getElementById('warning-banner').classList.add('hidden');
+
+            clock.getDelta();
+
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animate();
+        }
     </script>
 </body>
 </html>
