@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>벨튀 서바이벌 3D (Ding Dong Ditch 3D - Day Mode)</title>
+    <title>벨튀 서바이벌 3D - 머리채 엔딩 모드</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Three.js -->
@@ -18,7 +18,7 @@
             user-select: none;
             -webkit-user-select: none;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: #e0f2fe;
+            background-color: #bae6fd;
         }
         #canvas-container {
             width: 100%;
@@ -57,13 +57,13 @@
             <!-- 중앙: 위협도 경고 메시지 -->
             <div id="warning-banner" class="hidden bg-red-500/95 text-white font-bold px-4 py-2 rounded-full border border-red-300 animate-pulse text-xs md:text-sm shadow-red-500/30 shadow-md flex items-center gap-2 pointer-events-auto">
                 <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                <span>집주인이 쫓아오고 있습니다! 초록 수풀에 숨으세요!</span>
+                <span>집주인이 추격 중입니다! 연두색 수풀에 숨으세요!</span>
             </div>
 
             <!-- 오른쪽: 스태미나 바 -->
             <div class="bg-white/80 backdrop-blur-md p-3 rounded-2xl border border-blue-500/30 flex flex-col gap-1 w-36 md:w-48 pointer-events-auto shadow-lg text-slate-800">
                 <div class="flex justify-between text-xs font-bold">
-                    <span class="text-blue-600">🏃 스태미나</span>
+                    <span class="text-blue-600">🏃 기력</span>
                     <span id="stamina-percent" class="text-blue-500">100%</span>
                 </div>
                 <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden p-[2px]">
@@ -80,6 +80,13 @@
             </div>
         </div>
 
+        <!-- 시네마틱 자막 출력창 (벌서기 엔딩용) -->
+        <div class="flex justify-center items-center w-full my-auto">
+            <div id="cutscene-dialogue" class="hidden bg-black/80 text-yellow-400 font-black px-6 py-4 rounded-3xl border-2 border-yellow-500 text-center text-sm md:text-lg shadow-2xl animate-pulse pointer-events-auto max-w-lg">
+                대사 자리
+            </div>
+        </div>
+
         <!-- 하단: 컨트롤 패널 (모바일 및 PC 안내) -->
         <div class="flex justify-between items-end w-full">
             <!-- 모바일 가상 조이스틱 (왼쪽) -->
@@ -93,8 +100,8 @@
 
             <!-- 게임 팁 표시 (중앙) -->
             <div class="hidden md:flex flex-col gap-1 text-center bg-white/85 px-4 py-2 rounded-xl text-xs text-slate-700 max-w-sm mb-2 backdrop-blur-sm border border-slate-200 shadow-md">
-                <p>💡 <span class="text-amber-600 font-bold">조작법</span>: WASD / 방향키 (이동) | Shift (대시) | Space (벨 누르기)</p>
-                <p>💡 <span class="text-emerald-600 font-bold">꿀팁</span>: 주인이 쫓아올 때 <span class="text-emerald-500 font-bold">연두색 수풀</span> 구역에 들어가면 감쪽같이 숨어집니다!</p>
+                <p>💡 <span class="text-amber-600 font-bold">조작</span>: WASD/방향키 | Shift (대시) | Space (벨 누르기)</p>
+                <p>💡 <span class="text-emerald-600 font-bold">수풀 은신</span>: 울창해진 초록 덤불 속으로 들어가면 주인의 매서운 감시망을 완전히 따돌립니다!</p>
             </div>
 
             <!-- 액션 버튼들 (오른쪽: 모바일 전용 대시 및 벨 누르기) -->
@@ -117,38 +124,39 @@
     <!-- 오디오 활성화 안내 스타트 스크린 -->
     <div id="start-screen" class="absolute inset-0 z-50 bg-sky-100/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center select-none pointer-events-auto">
         <div class="max-w-md w-full bg-white p-8 rounded-3xl border border-sky-300/30 shadow-2xl flex flex-col items-center gap-6 pointer-events-auto">
-            <div class="text-6xl animate-bounce">☀️🏃‍♂️💨🚪🔔</div>
+            <div class="text-6xl animate-bounce">🌿🏃‍♂️🚪🔔😡</div>
             <h1 class="text-4xl font-extrabold bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent">벨튀 서바이벌 3D</h1>
             <p class="text-slate-600 text-sm leading-relaxed">
-                화창하고 평화로운 주택가 골목길... 장난꾸러기가 되어 이웃집 대문의 초인종을 장난스럽게 누르고 도망치세요! 화가 머리끝까지 난 이웃 주민들의 날카로운 눈초리를 피해 파릇파릇한 수풀 속에 숨어야 잡히지 않습니다.
+                <strong>[머리채 엔딩 & 관절 고정 업데이트]</strong><br>
+                집주인들에게 발각되면 진짜로 **머리채를 붙잡힌 채 질질 끌려가 마당에서 번쩍 손을 들고 벌을 서는 코믹한 슬랩스틱 엔딩**이 펼쳐집니다! 무너졌던 3D 관절 축과 NPC 이동 축이 완벽하게 조율되었습니다.
             </p>
             
             <div class="w-full space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left text-xs text-slate-600">
-                <div class="flex items-center gap-2"><span class="text-amber-500 font-bold">🔔 대문 앞 초인종 누르기:</span> 대문 옆에 마련된 우체통형 기둥의 초인종 구역에서 벨튀 가능!</div>
-                <div class="flex items-center gap-2"><span class="text-emerald-500 font-bold">🌿 인도/수풀 피신:</span> 도로 밖 회색 인도와 초록 잔디의 연두색 덤불 영역에 숨으세요.</div>
-                <div class="flex items-center gap-2"><span class="text-blue-500 font-bold">🏃 기력 대시:</span> Shift 키나 대시 버튼으로 쌩쌩 달리되, 스태미나가 다 닳지 않도록 주의하세요!</div>
+                <div class="flex items-center gap-2"><span class="text-emerald-600 font-bold">🌿 대규모 수풀 증설:</span> 각 청크당 수풀 개수가 16개로 은신 효율이 기하급수적으로 좋습니다.</div>
+                <div class="flex items-center gap-2"><span class="text-red-500 font-bold">🏃 정방향 이동 교정:</span> NPC들이 옆으로 걷지 않고 정면을 바라보며 올바르게 추격합니다.</div>
+                <div class="flex items-center gap-2"><span class="text-blue-500 font-bold">🦵 관절 분리 현상 수정:</span> 벌설 때 캐릭터의 다리가 공중부양하거나 몸통과 찢어지지 않습니다.</div>
             </div>
 
             <button id="btn-start" class="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-black rounded-2xl text-lg hover:from-amber-500 hover:to-orange-600 active:scale-98 transition-all shadow-xl shadow-orange-500/20 pointer-events-auto">
-                골목길 벨튀하러 가기!
+                무한 수풀 골목길 진입!
             </button>
-            <div class="text-[10px] text-slate-400">※ 효과음 합성이 포함되어 있어 소리를 켜시면 더 스릴 넘칩니다!</div>
+            <div class="text-[10px] text-slate-400">※ 직접 합성된 효과음들이 들어 있어 스릴을 높여줍니다.</div>
         </div>
     </div>
 
     <!-- 게임 오버 모달 -->
-    <div id="gameover-screen" class="hidden absolute inset-0 z-40 bg-red-900/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white pointer-events-auto">
+    <div id="gameover-screen" class="hidden absolute inset-0 z-40 bg-red-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white pointer-events-auto">
         <div class="max-w-md w-full bg-white p-8 rounded-3xl border-2 border-red-300 shadow-2xl flex flex-col items-center gap-6 text-slate-800">
-            <div class="text-6xl text-red-500 animate-bounce">😡🫵🏃‍♂️</div>
-            <h2 class="text-3xl font-extrabold text-red-600">골목에서 현장 잡힘!</h2>
+            <div class="text-6xl text-red-500 animate-bounce">🤦‍♂️🙇‍♂️😡</div>
+            <h2 class="text-3xl font-extrabold text-red-600">뜨거운 벌서기 엔딩!</h2>
             <p class="text-slate-600 text-sm">
-                "이 녀석! 한낮에 남의 집 초인종을 마구 누르고 도망치다니!"<br>
-                결국 끈질기게 쫓아온 집주인에게 단단히 덜미를 잡혔습니다.
+                "요 녀석! 헐레벌떡 도망치면 안 잡힐 줄 알았느냐!"<br>
+                집주인에게 머리채를 단단히 잡힌 뒤 집 앞마당으로 질질 끌려가 영혼까지 탈탈 털리는 참교육을 받았습니다.
             </p>
 
             <div class="grid grid-cols-2 gap-4 w-full bg-slate-50 p-4 rounded-2xl border border-slate-200">
                 <div>
-                    <div class="text-xs text-slate-500">이번 성공 횟수</div>
+                    <div class="text-xs text-slate-500">성공한 벨튀 횟수</div>
                     <div class="text-2xl font-black text-amber-500"><span id="final-score">0</span>회</div>
                 </div>
                 <div>
@@ -158,13 +166,12 @@
             </div>
 
             <button id="btn-restart" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-black rounded-2xl text-lg hover:from-emerald-400 hover:to-green-500 active:scale-98 transition-all shadow-xl shadow-green-500/20 pointer-events-auto">
-                다시 기회 도전하기!
+                반성하고 다시 도전하기!
             </button>
         </div>
     </div>
 
     <script>
-        // --- 사운드 효과 (Web Audio API) ---
         class SoundEffects {
             constructor() {
                 this.ctx = null;
@@ -186,11 +193,10 @@
                 if (!this.ctx) return;
                 try {
                     const now = this.ctx.currentTime;
-                    // Ding
                     const osc1 = this.ctx.createOscillator();
                     const gain1 = this.ctx.createGain();
                     osc1.type = 'triangle';
-                    osc1.frequency.setValueAtTime(880, now); // A5
+                    osc1.frequency.setValueAtTime(880, now); 
                     gain1.gain.setValueAtTime(0.3, now);
                     gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
                     osc1.connect(gain1);
@@ -198,11 +204,10 @@
                     osc1.start(now);
                     osc1.stop(now + 0.4);
 
-                    // Dong
                     const osc2 = this.ctx.createOscillator();
                     const gain2 = this.ctx.createGain();
                     osc2.type = 'triangle';
-                    osc2.frequency.setValueAtTime(698.46, now + 0.25); // F5
+                    osc2.frequency.setValueAtTime(698.46, now + 0.25); 
                     gain2.gain.setValueAtTime(0.3, now + 0.25);
                     gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
                     osc2.connect(gain2);
@@ -264,7 +269,7 @@
                     const gain = this.ctx.createGain();
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); // E5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.2); 
                     gain.gain.setValueAtTime(0.12, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
                     osc.connect(gain);
@@ -297,38 +302,75 @@
                     console.warn(err);
                 }
             }
+            playWhimper() {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.linearRampToValueAtTime(800, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } catch(err) {
+                    console.warn(err);
+                }
+            }
         }
         const sfx = new SoundEffects();
 
-        // --- 게임 전역 변수 및 설정 ---
         let scene, camera, renderer;
         let keys = { w: false, a: false, s: false, d: false, Shift: false };
         let joystickInput = { x: 0, y: 0, active: false };
         
         let player;
-        let houses = [];
-        let bushes = [];
-        let owners = [];
+        
+        // 무한 맵 청크 시스템 관리 변수
+        let activeChunks = new Map(); // key: chunkZIndex, value: chunkObject
+        const CHUNK_SIZE = 40;        // 청크당 Z축 길이
+        const VIEW_DISTANCE = 2;      // 앞뒤로 몇 개의 청크를 유지할지 결정
+
+        // 실시간 캐시 데이터
+        let activeHouses = [];
+        let activeBushes = [];
+        let activeOwners = [];
         
         let score = 0;
-        let highScore = localStorage.getItem('bel_highscore') || 0;
+        let highScore = 0;
+        
+        // 아이프레임 샌드박스 로컬스토리지 권한 접근 예외 방어막 설치
+        try {
+            highScore = localStorage.getItem('bel_highscore') || 0;
+        } catch (e) {
+            console.warn("로컬 스토리지 접근 불가 우회 처리 완료.");
+        }
+
         let isGameOver = false;
         let gameActive = false;
         let animationFrameId = null;
         
         let playerStamina = 100;
-        const STAMINA_DRAIN = 35; // 초당 대시 소모량
-        const STAMINA_RECOVER = 18; // 초당 회복량
+        const STAMINA_DRAIN = 35; 
+        const STAMINA_RECOVER = 18; 
         let isDashing = false;
 
-        // 맵 안전 가두리 경계 (플레이어가 맵 밖으로 안 벗어나게 가둠)
-        const WORLD_BOUNDS = 32;
+        const ROAD_X_BOUNDS = 28;
 
-        // --- 초기화 및 실행 수립 ---
+        // 시네마틱 벌서기 엔딩 전용 변수군
+        let cutsceneActive = false;
+        let cutsceneStage = 0; // 0: 발각/머리채잡기, 1: 대문으로 질질끌기, 2: 마당에서 무릎꿇고 손들기 벌서기
+        let cutsceneTimer = 0;
+        let catchingOwnerInstance = null;
+
         function startInit() {
             document.getElementById('high-score-val').innerText = highScore;
 
-            // 시작 버튼 안전한 연결
             const startBtn = document.getElementById('btn-start');
             if (startBtn) {
                 startBtn.addEventListener('click', (e) => {
@@ -338,7 +380,6 @@
                     gameActive = true;
                     initGame();
                     
-                    // 루프 분리 관리로 렉 최소화
                     if (animationFrameId) {
                         cancelAnimationFrame(animationFrameId);
                     }
@@ -346,7 +387,6 @@
                 });
             }
 
-            // 재시작 버튼 안전한 연결
             const restartBtn = document.getElementById('btn-restart');
             if (restartBtn) {
                 restartBtn.addEventListener('click', (e) => {
@@ -359,25 +399,21 @@
             setupInputListeners();
         }
 
-        // DOM 로드 완료 대응 시스템
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
             startInit();
         } else {
             document.addEventListener('DOMContentLoaded', startInit);
         }
 
-        // --- 3D 씬 및 화창한 낮 환경 초기화 ---
         function initGame() {
             scene = new THREE.Scene();
-            // 맑고 투명한 하늘빛(낮)으로 전격 전환
             scene.background = new THREE.Color(0xbce6ff);
-            scene.fog = new THREE.FogExp2(0xbce6ff, 0.015);
+            scene.fog = new THREE.FogExp2(0xbce6ff, 0.012);
 
-            // 쿼터뷰 시점 카메라
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             
             const container = document.getElementById('canvas-container');
-            container.innerHTML = ''; // 이전 잔여 요소 청소
+            container.innerHTML = ''; 
             
             try {
                 renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -387,23 +423,21 @@
                 container.appendChild(renderer.domElement);
             } catch(e) {
                 console.error(e);
-                container.innerHTML = `<div class="flex items-center justify-center h-full text-red-500 font-bold bg-slate-900 p-4 text-center">3D 그래픽 초기화 실패. WebGL 지원 기기 및 최신 브라우저가 필요합니다.</div>`;
+                container.innerHTML = `<div class="flex items-center justify-center h-full text-red-500 font-bold bg-slate-900 p-4 text-center">3D 그래픽 초기화 실패. WebGL 지원 환경이 필요합니다.</div>`;
                 return;
             }
 
-            // 주간 라이팅 설정 (태양광)
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
             scene.add(ambientLight);
 
-            // 밝은 태양 빛 (Directional Sunlight)
             const sunLight = new THREE.DirectionalLight(0xfffdf2, 1.1);
-            sunLight.position.set(30, 50, 15);
+            sunLight.position.set(30, 60, 15);
             sunLight.castShadow = true;
-            sunLight.shadow.mapSize.width = 2048;
-            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.mapSize.width = 1024;
+            sunLight.shadow.mapSize.height = 1024;
             sunLight.shadow.camera.near = 0.5;
             sunLight.shadow.camera.far = 150;
-            const d = 40;
+            const d = 50;
             sunLight.shadow.camera.left = -d;
             sunLight.shadow.camera.right = d;
             sunLight.shadow.camera.top = d;
@@ -411,93 +445,240 @@
             sunLight.shadow.bias = -0.0005;
             scene.add(sunLight);
 
-            // 환경 구조물 생성
-            createStreetEnvironment();
-
-            // 플레이어 생성
             createPlayerCharacter();
 
-            // 주택들 배치 (대문 도로 정면 배치 완료 - 수풀 생성 전 배치함으로써 집 위치 참조가 가능하게 합니다)
-            createNeighborhoodHouses();
-
-            // 장애물 및 수풀 배치
-            createObstaclesAndBushes();
+            activeChunks = new Map();
+            activeHouses = [];
+            activeBushes = [];
+            activeOwners = [];
+            updateMapChunks();
 
             window.addEventListener('resize', onWindowResize);
         }
 
-        // --- 밝은 아스팔트, 인도 보도블록, 선명한 풀밭 제작 ---
-        function createStreetEnvironment() {
-            // 도로 폭 12 축소
-            const roadGeo = new THREE.PlaneGeometry(12, 80);
-            const roadMat = new THREE.MeshStandardMaterial({ 
-                color: 0x7a8296, 
-                roughness: 0.75 
-            });
+        function createPlayerCharacter() {
+            player = new THREE.Group();
+            player.position.set(0, 0, 25); 
+
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x3498db, roughness: 0.5 }); // 파란 티셔츠
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.6 }); // 피부색
+            const hairMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50 }); // 머리카락
+            const shoeMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c }); // 빨간 신발
+
+            // 몸통
+            const bodyGeo = new THREE.BoxGeometry(0.6, 0.8, 0.4);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.9;
+            body.castShadow = true;
+            player.add(body);
+            player.body = body;
+
+            // 머리
+            const headGeo = new THREE.BoxGeometry(0.45, 0.45, 0.45);
+            const head = new THREE.Mesh(headGeo, skinMat);
+            head.position.y = 1.5;
+            head.castShadow = true;
+            player.add(head);
+            player.head = head;
+
+            // 모자 / 머리카락
+            const capGeo = new THREE.BoxGeometry(0.48, 0.15, 0.48);
+            const cap = new THREE.Mesh(capGeo, hairMat);
+            cap.position.y = 1.73;
+            player.add(cap);
+
+            // [어깨 관절 신설] - 팔의 회전 중심이 어깨가 되도록 조절
+            const armGeo = new THREE.BoxGeometry(0.14, 0.5, 0.14);
+
+            player.leftArmJoint = new THREE.Group();
+            player.leftArmJoint.position.set(-0.38, 1.2, 0); // 어깨 위치
+            player.add(player.leftArmJoint);
+
+            player.leftArm = new THREE.Mesh(armGeo, bodyMat);
+            player.leftArm.position.set(0, -0.25, 0); // 어깨 밑으로 오프셋
+            player.leftArm.castShadow = true;
+            player.leftArmJoint.add(player.leftArm);
+
+            player.rightArmJoint = new THREE.Group();
+            player.rightArmJoint.position.set(0.38, 1.2, 0);
+            player.add(player.rightArmJoint);
+
+            player.rightArm = new THREE.Mesh(armGeo, bodyMat);
+            player.rightArm.position.set(0, -0.25, 0);
+            player.rightArm.castShadow = true;
+            player.rightArmJoint.add(player.rightArm);
+
+            // [골반 관절 신설] - 다리의 회전 중심이 골반이 되도록 조절
+            const legGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.5, 8);
+            const footGeo = new THREE.BoxGeometry(0.15, 0.12, 0.25);
+
+            player.leftLegJoint = new THREE.Group();
+            player.leftLegJoint.position.set(-0.18, 0.5, 0); // 골반 위치
+            player.add(player.leftLegJoint);
+
+            player.leftLeg = new THREE.Mesh(legGeo, bodyMat);
+            player.leftLeg.position.set(0, -0.25, 0); // 골반 밑으로 오프셋
+            player.leftLeg.castShadow = true;
+            player.leftLegJoint.add(player.leftLeg);
+
+            // [다리 아래 신발 결속] - 다리가 움직일 때 신발이 완벽히 동기화
+            const leftFoot = new THREE.Mesh(footGeo, shoeMat);
+            leftFoot.position.set(0, -0.25, 0.08); // 다리 최하단 앞쪽 배치
+            leftFoot.castShadow = true;
+            player.leftLeg.add(leftFoot);
+
+            player.rightLegJoint = new THREE.Group();
+            player.rightLegJoint.position.set(0.18, 0.5, 0);
+            player.add(player.rightLegJoint);
+
+            player.rightLeg = new THREE.Mesh(legGeo, bodyMat);
+            player.rightLeg.position.set(0, -0.25, 0);
+            player.rightLeg.castShadow = true;
+            player.rightLegJoint.add(player.rightLeg);
+
+            const rightFoot = new THREE.Mesh(footGeo, shoeMat);
+            rightFoot.position.set(0, -0.25, 0.08);
+            rightFoot.castShadow = true;
+            player.rightLeg.add(rightFoot);
+
+            scene.add(player);
+
+            player.speed = 4.5;
+            player.dashSpeed = 8.5;
+            player.rotationSpeed = 10;
+            player.isHidden = false;
+            player.currentRingTarget = null;
+        }
+
+        function updateMapChunks() {
+            if (!player) return;
+
+            const playerChunkZ = Math.floor(player.position.z / CHUNK_SIZE);
+
+            const minChunkZ = playerChunkZ - VIEW_DISTANCE;
+            const maxChunkZ = playerChunkZ + VIEW_DISTANCE;
+
+            for (let [zIdx, chunk] of activeChunks.entries()) {
+                if (zIdx < minChunkZ || zIdx > maxChunkZ) {
+                    destroyChunk(zIdx, chunk);
+                }
+            }
+
+            for (let zIdx = minChunkZ; zIdx <= maxChunkZ; zIdx++) {
+                if (!activeChunks.has(zIdx)) {
+                    createChunk(zIdx);
+                }
+            }
+
+            rebuildGlobalEntitiesCache();
+        }
+
+        function createChunk(zIdx) {
+            const chunkGroup = new THREE.Group();
+            chunkGroup.position.set(0, 0, zIdx * CHUNK_SIZE);
+            scene.add(chunkGroup);
+
+            const chunkData = {
+                group: chunkGroup,
+                zIdx: zIdx,
+                houses: [],
+                bushes: [],
+                owners: [],
+                disposables: [] 
+            };
+
+            const trackResource = (mesh) => {
+                if (mesh.geometry) chunkData.disposables.push(mesh.geometry);
+                if (mesh.material) {
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material.forEach(m => chunkData.disposables.push(m));
+                    } else {
+                        chunkData.disposables.push(mesh.material);
+                    }
+                }
+            };
+
+            const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x7a8296, roughness: 0.75 });
             const road = new THREE.Mesh(roadGeo, roadMat);
             road.rotation.x = -Math.PI / 2;
             road.receiveShadow = true;
-            scene.add(road);
+            road.position.set(0, 0, CHUNK_SIZE / 2);
+            chunkGroup.add(road);
+            trackResource(road);
 
-            // 주황빛 중앙 차선선
             const lineGeo = new THREE.PlaneGeometry(0.2, 4);
             const lineMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
-            for (let z = -35; z <= 35; z += 10) {
+            for (let offsetZ = 2; offsetZ < CHUNK_SIZE; offsetZ += 10) {
                 const line = new THREE.Mesh(lineGeo, lineMat);
                 line.rotation.x = -Math.PI / 2;
-                line.position.set(0, 0.015, z);
-                scene.add(line);
+                line.position.set(0, 0.015, offsetZ);
+                chunkGroup.add(line);
+                trackResource(line);
             }
 
-            // 회색 인도 보도블록 지대 (폭 4씩 배정)
-            const leftSidewalkGeo = new THREE.PlaneGeometry(4, 80);
+            const sidewalkGeo = new THREE.PlaneGeometry(4, CHUNK_SIZE);
             const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.7 });
             
-            const leftSidewalk = new THREE.Mesh(leftSidewalkGeo, sidewalkMat);
+            const leftSidewalk = new THREE.Mesh(sidewalkGeo, sidewalkMat);
             leftSidewalk.rotation.x = -Math.PI / 2;
-            leftSidewalk.position.set(-8, 0.03, 0); // 도로 x=-6 ~ 6 바깥 구역 (x=-10 ~ -6)
+            leftSidewalk.position.set(-8, 0.03, CHUNK_SIZE / 2);
             leftSidewalk.receiveShadow = true;
-            scene.add(leftSidewalk);
+            chunkGroup.add(leftSidewalk);
+            trackResource(leftSidewalk);
 
             const rightSidewalk = leftSidewalk.clone();
-            rightSidewalk.position.set(8, 0.03, 0); // (x=6 ~ 10)
-            scene.add(rightSidewalk);
+            rightSidewalk.position.x = 8;
+            chunkGroup.add(rightSidewalk);
+            trackResource(rightSidewalk);
 
-            // 보도블록 데코 라인
             const tileLineGeo = new THREE.PlaneGeometry(4, 0.06);
             const tileLineMat = new THREE.MeshBasicMaterial({ color: 0x64748b });
-            for (let z = -40; z <= 40; z += 4) {
+            for (let offsetZ = 0; offsetZ < CHUNK_SIZE; offsetZ += 4) {
                 const lineL = new THREE.Mesh(tileLineGeo, tileLineMat);
                 lineL.rotation.x = -Math.PI / 2;
-                lineL.position.set(-8, 0.035, z);
-                scene.add(lineL);
+                lineL.position.set(-8, 0.035, offsetZ);
+                chunkGroup.add(lineL);
+                trackResource(lineL);
 
                 const lineR = lineL.clone();
                 lineR.position.x = 8;
-                scene.add(lineR);
+                chunkGroup.add(lineR);
+                trackResource(lineR);
             }
 
-            // 푸른 잔디 구역
-            const grassGeo = new THREE.PlaneGeometry(30, 80);
+            const grassGeo = new THREE.PlaneGeometry(30, CHUNK_SIZE);
             const grassMat = new THREE.MeshStandardMaterial({ color: 0x5ba856, roughness: 0.85 });
             
             const leftGrass = new THREE.Mesh(grassGeo, grassMat);
             leftGrass.rotation.x = -Math.PI / 2;
-            leftGrass.position.set(-25, 0.02, 0);
+            leftGrass.position.set(-25, 0.02, CHUNK_SIZE / 2);
             leftGrass.receiveShadow = true;
-            scene.add(leftGrass);
+            chunkGroup.add(leftGrass);
+            trackResource(leftGrass);
 
             const rightGrass = leftGrass.clone();
-            rightGrass.position.set(25, 0.02, 0);
-            scene.add(rightGrass);
+            rightGrass.position.x = 25;
+            chunkGroup.add(rightGrass);
+            trackResource(rightGrass);
 
-            // 장식 가로등
-            createStreetlight(-9.8, -25);
-            createStreetlight(9.8, 0);
-            createStreetlight(-9.8, 25);
+            const lightSide = zIdx % 2 === 0 ? -9.8 : 9.8;
+            const lampGroup = createStreetlightObject(lightSide, CHUNK_SIZE / 2, trackResource);
+            chunkGroup.add(lampGroup);
+
+            const houseDataLeft = buildChunkHouse(chunkGroup, zIdx, 'left', -15, 10, trackResource);
+            chunkData.houses.push(houseDataLeft);
+
+            const houseDataRight = buildChunkHouse(chunkGroup, zIdx, 'right', 15, 30, trackResource);
+            chunkData.houses.push(houseDataRight);
+
+            const generatedBushes = buildChunkBushes(chunkGroup, chunkData.houses, trackResource);
+            chunkData.bushes = generatedBushes;
+
+            activeChunks.set(zIdx, chunkData);
         }
 
-        function createStreetlight(x, z) {
+        function createStreetlightObject(x, z, tracker) {
             const group = new THREE.Group();
             group.position.set(x, 0, z);
 
@@ -507,119 +688,183 @@
             pole.position.y = 3;
             pole.castShadow = true;
             group.add(pole);
+            tracker(pole);
 
             const headGeo = new THREE.BoxGeometry(0.7, 0.4, 1.1);
             const headMat = new THREE.MeshStandardMaterial({ color: 0x414954 });
             const head = new THREE.Mesh(headGeo, headMat);
             head.position.set(0, 6, 0.4);
             group.add(head);
+            tracker(head);
 
             const lampGeo = new THREE.BoxGeometry(0.5, 0.1, 0.7);
             const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff3cc });
             const lamp = new THREE.Mesh(lampGeo, lampMat);
             lamp.position.set(0, 5.8, 0.4);
             group.add(lamp);
+            tracker(lamp);
 
-            const light = new THREE.PointLight(0xffea88, 0.3, 5);
-            light.position.set(0, 5.6, 0.4);
-            group.add(light);
-
-            scene.add(group);
+            return group;
         }
 
-        // --- 은신용 수풀 및 쓰레기 상자 생성 (도로, 인도, 주택 영역 배제 랜덤 배치) ---
-        function createObstaclesAndBushes() {
-            bushes = [];
-            const numBushesToSpawn = 14; // 생성할 랜덤 수풀 개수
+        function buildChunkHouse(chunkGroup, zIdx, side, xPos, localZPos, tracker) {
+            const themes = [
+                { wall: 0xffffff, roof: 0xe53935, name: "성난 황씨 아저씨", diff: 1.05 },
+                { wall: 0xffe082, roof: 0x455a64, name: "대나무 몽둥이 할아버지", diff: 1.15 },
+                { wall: 0xc5cae9, roof: 0x1565c0, name: "눈빛 레이저 아줌마", diff: 1.25 },
+                { wall: 0xa5d6a7, roof: 0x2e7d32, name: "태권 빵집 아저씨", diff: 1.35 },
+                { wall: 0xffcc80, roof: 0xe65100, name: "시끄러운 이웃", diff: 1.45 }
+            ];
+            const themeIdx = Math.abs((zIdx + (side === 'left' ? 3 : 7)) % themes.length);
+            const theme = themes[themeIdx];
+
+            const houseGroup = new THREE.Group();
+            houseGroup.position.set(xPos, 0, localZPos);
+
+            const bodyGeo = new THREE.BoxGeometry(8, 6, 8);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: theme.wall, roughness: 0.6 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 3;
+            body.castShadow = true;
+            body.receiveShadow = true;
+            houseGroup.add(body);
+            tracker(body);
+
+            const roofGeo = new THREE.ConeGeometry(7, 3, 4);
+            const roofMat = new THREE.MeshStandardMaterial({ color: theme.roof, roughness: 0.5 });
+            const roof = new THREE.Mesh(roofGeo, roofMat);
+            roof.position.y = 7.5;
+            roof.rotation.y = Math.PI / 4;
+            roof.castShadow = true;
+            houseGroup.add(roof);
+            tracker(roof);
+
+            const doorGeo = new THREE.BoxGeometry(0.2, 2.8, 1.6);
+            const doorMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.85 });
+            const door = new THREE.Mesh(doorGeo, doorMat);
+            const doorXPos = side === 'left' ? 4.1 : -4.1;
+            door.position.set(doorXPos, 1.4, 0);
+            door.castShadow = true;
+            houseGroup.add(door);
+            tracker(door);
+
+            const pillarGeo = new THREE.BoxGeometry(0.8, 2.5, 0.8);
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x78909c });
+            const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+            pillar.position.set(doorXPos, 1.25, 1.2);
+            pillar.castShadow = true;
+            houseGroup.add(pillar);
+            tracker(pillar);
+
+            const buttonGeo = new THREE.BoxGeometry(0.15, 0.2, 0.15);
+            const buttonMat = new THREE.MeshBasicMaterial({ color: 0xe53935 });
+            const button = new THREE.Mesh(buttonGeo, buttonMat);
+            const faceOffset = side === 'left' ? 0.42 : -0.42;
+            button.position.set(doorXPos + faceOffset, 1.5, 1.2);
+            houseGroup.add(button);
+            tracker(button);
+
+            chunkGroup.add(houseGroup);
+
+            const globalHouseX = xPos;
+            const globalHouseZ = (zIdx * CHUNK_SIZE) + localZPos;
+            const bellWorldX = side === 'left' ? -8.5 : 8.5;
+            const bellWorldZ = globalHouseZ;
+
+            const zoneGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.05, 16);
+            const zoneMat = new THREE.MeshBasicMaterial({
+                color: 0xffb300,
+                transparent: true,
+                opacity: 0.5,
+                depthWrite: false
+            });
+            const bellZone = new THREE.Mesh(zoneGeo, zoneMat);
+            bellZone.position.set(bellWorldX, 0.055, bellWorldZ);
+            scene.add(bellZone);
+
+            const houseObj = {
+                id: `${zIdx}_${side}`,
+                side: side,
+                position: new THREE.Vector3(globalHouseX, 0, globalHouseZ),
+                bellPosition: new THREE.Vector3(bellWorldX, 0.05, bellWorldZ),
+                bellZoneMesh: bellZone, 
+                doorMesh: door,
+                localDoorX: doorXPos,
+                initialDoorY: 1.4,
+                ownerName: theme.name,
+                difficulty: theme.diff,
+                hasBeenRung: false,
+                cooldownTimer: 0
+            };
+
+            buildHouseOwner(houseObj, tracker);
+
+            return houseObj;
+        }
+
+        function buildChunkBushes(chunkGroup, chunkHouses, tracker) {
+            const chunkBushes = [];
+            const numBushes = 16; 
 
             const leavesMat = new THREE.MeshStandardMaterial({ 
-                color: 0x48b85c, 
-                roughness: 0.8, 
+                color: 0x3d8c40, 
+                roughness: 0.85, 
                 flatShading: true 
             });
 
-            // 집들의 위치 정보를 가져와 충돌 감지에 활용
-            const activeHouses = houses || [];
-
-            for (let i = 0; i < numBushesToSpawn; i++) {
+            for (let i = 0; i < numBushes; i++) {
                 let placed = false;
                 let attempts = 0;
-                let spawnX = 0;
-                let spawnZ = 0;
+                let localX = 0;
+                let localZ = 0;
 
-                while (!placed && attempts < 100) {
+                while (!placed && attempts < 40) {
                     attempts++;
-                    
-                    // 왼쪽 잔디밭(-28 ~ -11.5) 혹은 오른쪽 잔디밭(11.5 ~ 28)에만 생성되도록 좌표 보장 (인도와 도로 원천 제외)
                     const isLeft = Math.random() < 0.5;
                     if (isLeft) {
-                        spawnX = -28 + Math.random() * 16.5; 
+                        localX = -28 + Math.random() * 16.5; 
                     } else {
-                        spawnX = 11.5 + Math.random() * 16.5; 
+                        localX = 11.5 + Math.random() * 16.5; 
                     }
-                    
-                    spawnZ = -35 + Math.random() * 70; // -35 ~ 35 범위 안에서 랜덤
+                    localZ = Math.random() * CHUNK_SIZE;
 
-                    // 충돌 검사 1: 집 및 초인종 영역 침범 방지
-                    let collidesWithHouse = false;
-                    for (let house of activeHouses) {
-                        // 집 본체(8x8 박스) + 마진 고려하여 반경 6.5 이내면 재생성
-                        if (Math.abs(spawnX - house.position.x) < 6.5 && Math.abs(spawnZ - house.position.z) < 6.5) {
-                            collidesWithHouse = true;
-                            break;
-                        }
-                        // 집 대문 앞 벨 및 상호작용 구역 보호
-                        if (house.bellPosition) {
-                            const distToBell = new THREE.Vector2(spawnX, spawnZ).distanceTo(new THREE.Vector2(house.bellPosition.x, house.bellPosition.z));
-                            if (distToBell < 3.5) {
-                                collidesWithHouse = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (collidesWithHouse) continue;
-
-                    // 충돌 검사 2: 기존 수풀들과 겹치지 않게 배치
-                    let tooCloseToOtherBush = false;
-                    for (let other of bushes) {
-                        const distToOther = new THREE.Vector3(spawnX, 0, spawnZ).distanceTo(other.position);
-                        if (distToOther < 4.0) {
-                            tooCloseToOtherBush = true;
+                    let collides = false;
+                    for (let house of chunkHouses) {
+                        const distToHouse = new THREE.Vector2(localX, localZ).distanceTo(new THREE.Vector2(house.position.x, house.position.z % CHUNK_SIZE));
+                        if (distToHouse < 6.5) {
+                            collides = true;
                             break;
                         }
                     }
 
-                    if (tooCloseToOtherBush) continue;
-
-                    // 충돌 검사 3: 시작 리스폰 지점(플레이어 스폰 위치)과 겹치지 않도록 보호
-                    const distToSpawn = new THREE.Vector3(spawnX, 0, spawnZ).distanceTo(new THREE.Vector3(0, 0, 25));
-                    if (distToSpawn < 5.0) continue;
-
-                    // 모든 안전 검증 통과 시 위치 확정
-                    placed = true;
+                    if (!collides) {
+                        placed = true;
+                    }
                 }
 
                 if (placed) {
                     const group = new THREE.Group();
-                    group.position.set(spawnX, 0, spawnZ);
+                    group.position.set(localX, 0, localZ);
 
                     const geo1 = new THREE.SphereGeometry(1.0, 8, 8);
                     const m1 = new THREE.Mesh(geo1, leavesMat);
                     m1.position.set(0, 0.6, 0);
                     m1.castShadow = true;
                     group.add(m1);
+                    tracker(m1);
 
                     const geo2 = new THREE.SphereGeometry(0.8, 8, 8);
                     const m2 = new THREE.Mesh(geo2, leavesMat);
                     m2.position.set(-0.5, 0.5, 0.3);
                     m2.castShadow = true;
                     group.add(m2);
+                    tracker(m2);
 
                     const m3 = new THREE.Mesh(geo2, leavesMat);
                     m3.position.set(0.5, 0.5, -0.3);
                     m3.castShadow = true;
                     group.add(m3);
+                    tracker(m3);
 
                     const ringGeo = new THREE.RingGeometry(1.4, 1.5, 16);
                     const ringMat = new THREE.MeshBasicMaterial({ 
@@ -632,293 +877,31 @@
                     ring.rotation.x = -Math.PI / 2;
                     ring.position.y = 0.05;
                     group.add(ring);
+                    tracker(ring);
 
-                    scene.add(group);
-                    
-                    bushes.push({
+                    chunkGroup.add(group);
+
+                    const worldPos = new THREE.Vector3().copy(group.position).add(chunkGroup.position);
+
+                    chunkBushes.push({
                         mesh: group,
                         radius: 1.6,
-                        position: group.position
+                        position: worldPos
                     });
                 }
             }
 
-            // 쓰레기통 장애물도 인도와 도로가 아닌 안전한 풀밭 양옆 공간에 랜덤 분산 배치
-            const binLocations = [];
-            const numBins = 4;
-            for (let i = 0; i < numBins; i++) {
-                let placed = false;
-                let attempts = 0;
-                while (!placed && attempts < 100) {
-                    attempts++;
-                    const isLeft = Math.random() < 0.5;
-                    const binX = isLeft ? (-25 + Math.random() * 12) : (13 + Math.random() * 12);
-                    const binZ = -30 + Math.random() * 60;
-
-                    let collides = false;
-                    for (let house of activeHouses) {
-                        if (Math.abs(binX - house.position.x) < 6.0 && Math.abs(binZ - house.position.z) < 6.0) {
-                            collides = true;
-                            break;
-                        }
-                    }
-                    for (let bush of bushes) {
-                        const distToBush = new THREE.Vector3(binX, 0, binZ).distanceTo(bush.position);
-                        if (distToBush < 3.5) {
-                            collides = true;
-                            break;
-                        }
-                    }
-
-                    if (!collides) {
-                        binLocations.push({x: binX, z: binZ});
-                        placed = true;
-                    }
-                }
-            }
-
-            binLocations.forEach(loc => {
-                const binGroup = new THREE.Group();
-                binGroup.position.set(loc.x, 0, loc.z);
-
-                const binGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 8);
-                const binMat = new THREE.MeshStandardMaterial({ color: 0x90a4ae, metalness: 0.2, roughness: 0.6 });
-                const bin = new THREE.Mesh(binGeo, binMat);
-                bin.position.y = 0.6;
-                bin.castShadow = true;
-                bin.receiveShadow = true;
-                binGroup.add(bin);
-
-                const capGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.15, 8);
-                const cap = new THREE.Mesh(capGeo, binMat);
-                cap.position.y = 1.25;
-                cap.castShadow = true;
-                binGroup.add(cap);
-
-                scene.add(binGroup);
-            });
+            return chunkBushes;
         }
 
-        // --- 플레이어 캐릭터 생성 ---
-        function createPlayerCharacter() {
-            player = new THREE.Group();
-            player.position.set(0, 0, 25); // 안전 스폰 좌표 설정
-
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff7043, roughness: 0.5 }); 
-            const pantsMat = new THREE.MeshStandardMaterial({ color: 0x37474f, roughness: 0.6 });
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd54f, roughness: 0.6 }); 
-            const capMat = new THREE.MeshStandardMaterial({ color: 0xffca28 }); 
-            const shoeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-
-            const bodyGeo = new THREE.BoxGeometry(0.6, 0.8, 0.4);
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.9;
-            body.castShadow = true;
-            player.add(body);
-
-            const headGeo = new THREE.BoxGeometry(0.45, 0.45, 0.45);
-            const head = new THREE.Mesh(headGeo, skinMat);
-            head.position.y = 1.5;
-            head.castShadow = true;
-            player.add(head);
-
-            const capGeo = new THREE.BoxGeometry(0.48, 0.15, 0.48);
-            const cap = new THREE.Mesh(capGeo, capMat);
-            cap.position.y = 1.73;
-            player.add(cap);
-
-            const visorGeo = new THREE.BoxGeometry(0.48, 0.05, 0.25);
-            const visor = new THREE.Mesh(visorGeo, capMat);
-            visor.position.set(0, 1.7, 0.25);
-            player.add(visor);
-
-            const legGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.5, 8);
-            player.leftLeg = new THREE.Mesh(legGeo, pantsMat);
-            player.leftLeg.position.set(-0.18, 0.25, 0);
-            player.leftLeg.castShadow = true;
-            player.add(player.leftLeg);
-
-            player.rightLeg = player.leftLeg.clone();
-            player.rightLeg.position.x = 0.18;
-            player.add(player.rightLeg);
-
-            const footGeo = new THREE.BoxGeometry(0.15, 0.12, 0.25);
-            const leftFoot = new THREE.Mesh(footGeo, shoeMat);
-            leftFoot.position.set(-0.18, 0.06, 0.05);
-            leftFoot.castShadow = true;
-            player.add(leftFoot);
-
-            const rightFoot = leftFoot.clone();
-            rightFoot.position.x = 0.18;
-            player.add(rightFoot);
-
-            scene.add(player);
-
-            player.speed = 5.2;
-            player.dashSpeed = 9.5;
-            player.rotationSpeed = 12;
-            player.isHidden = false;
-            player.currentRingTarget = null;
-        }
-
-        // --- 집 물리 충돌 감지 AABB 슬라이딩 물리 ---
-        function checkHouseCollision(x, z, radius = 0.45) {
-            for (let house of houses) {
-                const hX = house.position.x;
-                const hZ = house.position.z;
-                // 집 박스 크기(8x8x6)에 가깝게 AABB 절반 폭 정의
-                const halfW = 4.0;
-                const halfD = 4.0;
-
-                // 충돌 검사용 가장 가까운 좌표 계산
-                const closestX = Math.max(hX - halfW, Math.min(x, hX + halfW));
-                const closestZ = Math.max(hZ - halfD, Math.min(z, hZ + halfD));
-
-                const distX = x - closestX;
-                const distZ = z - closestZ;
-                const distSq = (distX * distX) + (distZ * distZ);
-
-                // 플레이어가 집 충돌 범위 안쪽으로 뚫고 들어가면 true 반환
-                if (distSq < radius * radius) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // --- 집 및 문앞 초인종 영역 생성 (대문 도로 정면 정렬 완료) ---
-        function createNeighborhoodHouses() {
-            houses = [];
-
-            const houseDefs = [
-                {
-                    id: 1,
-                    side: 'left',
-                    x: -15, z: -18,
-                    wallColor: 0xffffff, // 화이트 하우스
-                    roofColor: 0xe53935,
-                    ownerName: "버럭 아저씨",
-                    difficulty: 1.0
-                },
-                {
-                    id: 2,
-                    side: 'right',
-                    x: 15, z: 0,
-                    wallColor: 0xffe082, // 벽돌 주택
-                    roofColor: 0x455a64,
-                    ownerName: "깐깐한 할아버지",
-                    difficulty: 1.3
-                },
-                {
-                    id: 3,
-                    side: 'left',
-                    x: -15, z: 18,
-                    wallColor: 0xc5cae9, // 파스텔 주택
-                    roofColor: 0x1565c0,
-                    ownerName: "눈빛 매서운 이모",
-                    difficulty: 1.6
-                }
-            ];
-
-            houseDefs.forEach(def => {
-                const group = new THREE.Group();
-                group.position.set(def.x, 0, def.z);
-
-                // 1. 주택 메인 빌딩
-                const bodyGeo = new THREE.BoxGeometry(8, 6, 8);
-                const bodyMat = new THREE.MeshStandardMaterial({ color: def.wallColor, roughness: 0.6 });
-                const body = new THREE.Mesh(bodyGeo, bodyMat);
-                body.position.y = 3;
-                body.castShadow = true;
-                body.receiveShadow = true;
-                group.add(body);
-
-                // 2. 고깔 지붕
-                const roofGeo = new THREE.ConeGeometry(7, 3, 4);
-                const roofMat = new THREE.MeshStandardMaterial({ color: def.roofColor, roughness: 0.5 });
-                const roof = new THREE.Mesh(roofGeo, roofMat);
-                roof.position.y = 7.5;
-                roof.rotation.y = Math.PI / 4;
-                roof.castShadow = true;
-                group.add(roof);
-
-                // 3. 인도 정면 방향 우드 대문 (슬라이딩 하강 문)
-                // 왼쪽 집은 +X를, 오른쪽 집은 -X를 향함
-                const doorGeo = new THREE.BoxGeometry(0.2, 2.8, 1.6);
-                const doorMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.85 });
-                const door = new THREE.Mesh(doorGeo, doorMat);
-                
-                const doorXPos = def.side === 'left' ? 4.1 : -4.1;
-                door.position.set(doorXPos, 1.4, 0);
-                door.castShadow = true;
-                group.add(door);
-
-                // 4. 대문 바로 옆 초인종 우체통 기둥 배치
-                const pillarGeo = new THREE.BoxGeometry(0.8, 2.5, 0.8);
-                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x78909c });
-                const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-                // 대문 살짝 뒤(Z=1.2)에 배치해 조화롭게 설계
-                pillar.position.set(doorXPos, 1.25, 1.2);
-                pillar.castShadow = true;
-                group.add(pillar);
-
-                // 빨간색 벨 단추 메쉬
-                const buttonGeo = new THREE.BoxGeometry(0.15, 0.2, 0.15);
-                const buttonMat = new THREE.MeshBasicMaterial({ color: 0xe53935 });
-                const button = new THREE.Mesh(buttonGeo, buttonMat);
-                const faceOffset = def.side === 'left' ? 0.42 : -0.42;
-                button.position.set(doorXPos + faceOffset, 1.5, 1.2);
-                group.add(button);
-
-                // 5. [수정 완료] 완벽한 대문 앞 인도 초인종 벨 누르기 영역 정의
-                // 이제 실제 대문 앞(인도 영역 x = -8.5 / 8.5)에 상호작용 트리거가 연동됩니다.
-                const bellWorldX = def.side === 'left' ? -8.5 : 8.5;
-                const bellWorldZ = def.z;
-
-                const zoneGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.05, 16);
-                const zoneMat = new THREE.MeshBasicMaterial({
-                    color: 0xffb300,
-                    transparent: true,
-                    opacity: 0.5,
-                    depthWrite: false
-                });
-                const bellZone = new THREE.Mesh(zoneGeo, zoneMat);
-                bellZone.position.set(bellWorldX, 0.055, bellWorldZ);
-                scene.add(bellZone);
-
-                scene.add(group);
-
-                const houseObj = {
-                    id: def.id,
-                    side: def.side,
-                    position: group.position,
-                    bellPosition: new THREE.Vector3(bellWorldX, 0.05, bellWorldZ),
-                    doorMesh: door,
-                    localDoorX: doorXPos,
-                    initialDoorY: 1.4, // 기본 높이값 저장
-                    ownerName: def.ownerName,
-                    difficulty: def.difficulty,
-                    hasBeenRung: false,
-                    cooldownTimer: 0
-                };
-
-                houses.push(houseObj);
-
-                // 각 집마다의 AI 집주인 출현 등록
-                createHouseOwner(houseObj);
-            });
-        }
-
-        // --- 성난 집주인 NPC 생성 및 시야 레이저 설정 ---
-        function createHouseOwner(house) {
+        function buildHouseOwner(house, tracker) {
             const owner = new THREE.Group();
-            // 기본은 집 본체 중앙 숨김 상태
-            owner.position.set(house.position.x, 0, house.position.z);
+            owner.position.copy(house.position);
             owner.visible = false;
 
-            const suitColor = house.id === 2 ? 0x1e88e5 : (house.id === 3 ? 0x8e24aa : 0xe53935);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.5 });
-            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffcca3 });
+            const colorIdx = house.difficulty > 1.2 ? 0x8e24aa : 0xe53935;
+            const bodyMat = new THREE.MeshStandardMaterial({ color: colorIdx, roughness: 0.5 });
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.6 });
             const hairMat = new THREE.MeshStandardMaterial({ color: 0x37474f });
 
             // 몸통
@@ -927,6 +910,7 @@
             body.position.y = 1.05;
             body.castShadow = true;
             owner.add(body);
+            tracker(body);
 
             // 머리
             const headGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
@@ -934,34 +918,55 @@
             head.position.y = 1.8;
             head.castShadow = true;
             owner.add(head);
+            tracker(head);
 
-            // 머리칼
+            // 머리카락
             const hairGeo = new THREE.BoxGeometry(0.55, 0.25, 0.55);
             const hair = new THREE.Mesh(hairGeo, hairMat);
             hair.position.y = 2.1;
             owner.add(hair);
+            tracker(hair);
 
-            // 화난 눈썹
-            const browGeo = new THREE.BoxGeometry(0.1, 0.08, 0.4);
+            // [집주인 양팔 어깨 회전 정방향 배치]
+            const armGeo = new THREE.BoxGeometry(0.16, 0.55, 0.16);
+            
+            const leftArm = new THREE.Mesh(armGeo, bodyMat);
+            leftArm.position.set(-0.48, 1.0, 0); // 어깨 왼쪽
+            leftArm.castShadow = true;
+            owner.add(leftArm);
+            tracker(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeo, bodyMat);
+            rightArm.position.set(0.48, 1.0, 0); // 어깨 오른쪽
+            rightArm.castShadow = true;
+            owner.add(rightArm);
+            tracker(rightArm);
+
+            // [정면 +Z 축 정렬 눈썹 교정] - 게걸음 원천 수정
+            const browGeo = new THREE.BoxGeometry(0.4, 0.08, 0.1);
             const brow = new THREE.Mesh(browGeo, hairMat);
-            const faceDir = house.side === 'left' ? 0.26 : -0.26;
-            brow.position.set(faceDir, 1.9, 0);
+            brow.position.set(0, 1.9, 0.26); // 얼굴 정면(+Z 방향)에 부착
             owner.add(brow);
+            tracker(brow);
 
-            // 다리
+            // [다리 왼쪽/오른쪽 올바른 배열 배치]
             const legGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.6, 8);
+            
             const leftLeg = new THREE.Mesh(legGeo, bodyMat);
-            leftLeg.position.set(0, 0.3, -0.2);
+            leftLeg.position.set(-0.22, 0.3, 0); // 좌우측 정렬
             leftLeg.castShadow = true;
             owner.add(leftLeg);
+            tracker(leftLeg);
 
-            const rightLeg = leftLeg.clone();
-            rightLeg.position.z = 0.2;
+            const rightLeg = new THREE.Mesh(legGeo, bodyMat);
+            rightLeg.position.set(0.22, 0.3, 0); // 좌우측 정렬
+            rightLeg.castShadow = true;
             owner.add(rightLeg);
+            tracker(rightLeg);
 
-            // 주간용 경고 시야 서치 레이저 빔
+            // [정면 +Z 축을 향해 뻗는 감시 레이저 시야 콘]
             const visionGroup = new THREE.Group();
-            visionGroup.position.set(faceDir * 1.3, 1.7, 0);
+            visionGroup.position.set(0, 1.7, 0.3); // 얼굴 살짝 앞
 
             const coneGeo = new THREE.ConeGeometry(3.2, 13, 16, 1, true); 
             const coneMat = new THREE.MeshBasicMaterial({
@@ -972,46 +977,129 @@
                 depthWrite: false
             });
             const visionCone = new THREE.Mesh(coneGeo, coneMat);
-            // 시야 콘이 집 옆쪽(도로 방향)을 쏘게 설정
-            visionCone.rotation.z = house.side === 'left' ? -Math.PI / 2 : Math.PI / 2;
-            visionCone.position.set(faceDir * 25, 0, 0); 
+            // Three.js 콘 기본인 Y축 방향을 정면(+Z축)으로 90도 회전
+            visionCone.rotation.x = Math.PI / 2;
+            visionCone.position.set(0, 0, 6.5); // 시야 거리의 중간만큼 앞배치
             visionGroup.add(visionCone);
+            tracker(visionCone);
 
             owner.add(visionGroup);
-            scene.add(owner);
+            scene.add(owner); 
 
-            // 집에서 인도 밖으로 나오는 목표 지점
             const exitXOffset = house.side === 'left' ? 5.2 : -5.2;
 
             const ownerState = {
                 mesh: owner,
+                leftArm: leftArm,
+                rightArm: rightArm,
+                leftLeg: leftLeg,
+                rightLeg: rightLeg,
+                head: head,
                 house: house,
                 state: 'idle',
                 speed: 4.8 * house.difficulty,
                 angryBGMTriggered: false,
-                homePos: new THREE.Vector3(house.position.x, 0, house.position.z),
-                exitTargetPos: new THREE.Vector3(house.position.x + exitXOffset, 0, house.position.z), // 대문 밖
+                homePos: new THREE.Vector3().copy(house.position),
+                exitTargetPos: new THREE.Vector3(house.position.x + exitXOffset, 0, house.position.z),
                 patrolWaypoints: [
-                    new THREE.Vector3(house.bellPosition.x, 0, house.bellPosition.z), // 초인종 앞 조사
-                    new THREE.Vector3(0, 0, house.position.z),                       // 도로 한복판 전진 수색
-                    new THREE.Vector3(0, 0, house.position.z + (house.side === 'left' ? 8 : -8)) // 주변 탐색
+                    new THREE.Vector3(house.bellPosition.x, 0, house.bellPosition.z), 
+                    new THREE.Vector3(0, 0, house.position.z),                       
+                    new THREE.Vector3(0, 0, house.position.z + (house.side === 'left' ? 8 : -8)) 
                 ],
                 currentWaypointIdx: 0,
                 timer: 0,
                 visionAngle: 0.7
             };
 
-            owners.push(ownerState);
+            activeOwners.push(ownerState);
         }
 
-        // --- 입력 감지 바인딩 ---
+        function destroyChunk(zIdx, chunk) {
+            scene.remove(chunk.group);
+
+            chunk.houses.forEach(house => {
+                if (house.bellZoneMesh) {
+                    scene.remove(house.bellZoneMesh);
+                    house.bellZoneMesh.geometry.dispose();
+                    house.bellZoneMesh.material.dispose();
+                }
+            });
+
+            activeOwners.forEach((owner, idx) => {
+                if (owner.house.id.startsWith(`${zIdx}_`)) {
+                    scene.remove(owner.mesh);
+                    owner.mesh.traverse(child => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(m => m.dispose());
+                            } else {
+                                child.material.dispose();
+                            }
+                        }
+                    });
+                }
+            });
+
+            chunk.disposables.forEach(resource => {
+                if (resource && typeof resource.dispose === 'function') {
+                    resource.dispose();
+                }
+            });
+
+            activeChunks.delete(zIdx);
+        }
+
+        function rebuildGlobalEntitiesCache() {
+            activeHouses = [];
+            activeBushes = [];
+            const tempOwners = [];
+
+            for (let chunk of activeChunks.values()) {
+                activeHouses.push(...chunk.houses);
+                activeBushes.push(...chunk.bushes);
+            }
+
+            activeOwners = activeOwners.filter(owner => {
+                const chunkZ = Math.floor(owner.house.position.z / CHUNK_SIZE);
+                if (activeChunks.has(chunkZ)) {
+                    tempOwners.push(owner);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            activeOwners = tempOwners;
+        }
+
+        function checkHouseCollision(x, z, radius = 0.45) {
+            for (let house of activeHouses) {
+                const hX = house.position.x;
+                const hZ = house.position.z;
+                const halfW = 4.0;
+                const halfD = 4.0;
+
+                const closestX = Math.max(hX - halfW, Math.min(x, hX + halfW));
+                const closestZ = Math.max(hZ - halfD, Math.min(z, hZ + halfD));
+
+                const distX = x - closestX;
+                const distZ = z - closestZ;
+                const distSq = (distX * distX) + (distZ * distZ);
+
+                if (distSq < radius * radius) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function setupInputListeners() {
             window.addEventListener('keydown', (e) => {
-                if (!gameActive) return;
+                if (!gameActive || cutsceneActive) return;
                 const key = e.key.toLowerCase();
                 if (key === 'w' || e.key === 'ArrowUp') keys.w = true;
-                if (key === 'a' || e.key === 'ArrowLeft') keys.a = true;
                 if (key === 's' || e.key === 'ArrowDown') keys.s = true;
+                if (key === 'a' || e.key === 'ArrowLeft') keys.a = true;
                 if (key === 'd' || e.key === 'ArrowRight') keys.d = true;
                 if (e.key === 'Shift') keys.Shift = true;
                 
@@ -1050,7 +1138,7 @@
             let joystickRect = null;
 
             function handleJoystickMove(clientX, clientY) {
-                if (!joystickRect) return;
+                if (!joystickRect || cutsceneActive) return;
                 const centerX = joystickRect.left + joystickRect.width / 2;
                 const centerY = joystickRect.top + joystickRect.height / 2;
                 const maxDist = joystickRect.width / 2;
@@ -1125,7 +1213,7 @@
         }
 
         function triggerDoorbellEvent() {
-            if (isGameOver || !gameActive) return;
+            if (isGameOver || !gameActive || cutsceneActive) return;
             if (player.currentRingTarget) {
                 const target = player.currentRingTarget;
                 if (!target.hasBeenRung && target.cooldownTimer <= 0) {
@@ -1142,14 +1230,12 @@
             }
         }
 
-        // --- 대문 아래 하강 방식 개방 및 집주인 돌출 ---
         function triggerOwnerEmergence(house) {
-            const ownerObj = owners.find(o => o.house.id === house.id);
+            const ownerObj = activeOwners.find(o => o.house.id === house.id);
             if (!ownerObj) return;
 
             sfx.playAngry();
 
-            // 대문이 바닥 속 밑바닥(-1.4)으로 완전히 슬라이딩 전격 하강개방
             const doorSlide = setInterval(() => {
                 if (house.doorMesh.position.y > -1.4) {
                     house.doorMesh.position.y -= 0.15;
@@ -1159,14 +1245,12 @@
                 }
             }, 30);
 
-            // 주인이 대문 바로 앞 좌표에 실시간 스폰
             ownerObj.mesh.visible = true;
             ownerObj.mesh.position.set(house.position.x + house.localDoorX, 0, house.position.z);
             ownerObj.state = 'coming_out';
             ownerObj.timer = 0;
         }
 
-        // --- 메인 렌더링 프레임 루프 ---
         const clock = new THREE.Clock();
         function animate() {
             if (isGameOver) return;
@@ -1175,13 +1259,18 @@
             const delta = clock.getDelta();
 
             if (gameActive) {
-                updatePlayer(delta);
-                updateEnvironment(delta);
-                updateOwnerAI(delta);
-                checkCollisions();
+                if (cutsceneActive) {
+                    updateCutscene(delta);
+                } else {
+                    updatePlayer(delta);
+                    updateEnvironment(delta);
+                    updateOwnerAI(delta);
+                    checkCollisions();
+                    updateMapChunks();
+                }
             }
 
-            if (player && camera) {
+            if (player && camera && !cutsceneActive) {
                 const targetCamPos = new THREE.Vector3(
                     player.position.x,
                     player.position.y + 11,
@@ -1196,7 +1285,6 @@
             }
         }
 
-        // --- 플레이어 움직임 및 물리 충돌 보정 (집 통과 불가 슬라이딩 물리 탑재) ---
         function updatePlayer(delta) {
             let dx = 0;
             let dz = 0;
@@ -1233,35 +1321,35 @@
                 const nextX = player.position.x + moveX;
                 const nextZ = player.position.z + moveZ;
 
-                // [수정 핵심]: 집과 충돌하지 않는 경우에만 미끄러지듯 이동 (X축, Z축을 나누어 검사하여 벽면 미끄러짐 제공)
-                if (Math.abs(nextX) < WORLD_BOUNDS) {
+                if (Math.abs(nextX) < ROAD_X_BOUNDS) {
                     if (!checkHouseCollision(nextX, player.position.z)) {
                         player.position.x = nextX;
                     }
                 }
-                if (Math.abs(nextZ) < WORLD_BOUNDS) {
-                    if (!checkHouseCollision(player.position.x, nextZ)) {
-                        player.position.z = nextZ;
-                    }
+                if (!checkHouseCollision(player.position.x, nextZ)) {
+                    player.position.z = nextZ;
                 }
 
-                // 회전각 조정
                 const targetRotation = Math.atan2(dx, dz);
                 let diff = targetRotation - player.rotation.y;
                 diff = Math.atan2(Math.sin(diff), Math.cos(diff));
                 player.rotation.y += diff * player.rotationSpeed * delta;
 
+                // [관절 중심 회전 애니메이션] - 몸체 뜯어짐 완벽 예방
                 const swingSpeed = isDashing ? 18 : 11;
-                player.leftLeg.rotation.x = Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
-                player.rightLeg.rotation.x = -Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
+                player.leftLegJoint.rotation.x = Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
+                player.rightLegJoint.rotation.x = -Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
+                player.leftArmJoint.rotation.x = -Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
+                player.rightArmJoint.rotation.x = Math.sin(clock.getElapsedTime() * swingSpeed) * 0.55;
             } else {
-                player.leftLeg.rotation.x = 0;
-                player.rightLeg.rotation.x = 0;
+                player.leftLegJoint.rotation.x = 0;
+                player.rightLegJoint.rotation.x = 0;
+                player.leftArmJoint.rotation.x = 0;
+                player.rightArmJoint.rotation.x = 0;
             }
 
-            // 수풀 은신 탐지
             let insideBush = false;
-            bushes.forEach(bush => {
+            activeBushes.forEach(bush => {
                 const distance = player.position.distanceTo(bush.position);
                 if (distance < bush.radius) {
                     insideBush = true;
@@ -1288,18 +1376,16 @@
             }
         }
 
-        // --- 상호작용 및 대문 쿨타임 제어 ---
         function updateEnvironment(delta) {
             let nearBell = false;
             let targetHouse = null;
 
-            houses.forEach(house => {
+            activeHouses.forEach(house => {
                 if (house.cooldownTimer > 0) {
                     house.cooldownTimer -= delta;
                     if (house.cooldownTimer <= 0) {
                         house.hasBeenRung = false;
                         
-                        // 집 내부로 들어갔을 때 슬라이딩 대문을 다시 상승시켜 닫음
                         const doorClose = setInterval(() => {
                             if (house.doorMesh.position.y < house.initialDoorY) {
                                 house.doorMesh.position.y += 0.12;
@@ -1311,7 +1397,6 @@
                     }
                 }
 
-                // 대문 바로 앞(인도 영역)에 정확히 연계된 거리 판정
                 const distToBell = player.position.distanceTo(house.bellPosition);
                 if (distToBell < 1.6 && !house.hasBeenRung) {
                     nearBell = true;
@@ -1330,18 +1415,16 @@
             }
         }
 
-        // --- 집주인 추격 AI 상태 머신 ---
         function updateOwnerAI(delta) {
             let chasingCount = 0;
 
-            owners.forEach(owner => {
+            activeOwners.forEach(owner => {
                 if (!owner.mesh.visible) return;
 
                 const distToPlayer = owner.mesh.position.distanceTo(player.position);
 
                 switch (owner.state) {
                     case 'coming_out':
-                        // 대문 밖 인도 영역으로 전진
                         moveObjectToward(owner.mesh, owner.exitTargetPos, owner.speed * 0.8, delta);
                         if (owner.mesh.position.distanceTo(owner.exitTargetPos) < 0.25) {
                             owner.state = 'patrol_search';
@@ -1353,6 +1436,16 @@
                     case 'patrol_search':
                         const targetPt = owner.patrolWaypoints[owner.currentWaypointIdx];
                         moveObjectToward(owner.mesh, targetPt, owner.speed * 0.55, delta);
+
+                        // [집주인 팔다리 걷기 애니메이션 추가] - 이제 당당히 걸어 다닙니다.
+                        if (owner.leftArm && owner.rightArm) {
+                            owner.leftArm.rotation.x = Math.sin(clock.getElapsedTime() * 8) * 0.4;
+                            owner.rightArm.rotation.x = -Math.sin(clock.getElapsedTime() * 8) * 0.4;
+                        }
+                        if (owner.leftLeg && owner.rightLeg) {
+                            owner.leftLeg.rotation.x = -Math.sin(clock.getElapsedTime() * 8) * 0.4;
+                            owner.rightLeg.rotation.x = Math.sin(clock.getElapsedTime() * 8) * 0.4;
+                        }
 
                         const visionGroup = owner.mesh.children.find(c => c.type === "Group");
                         if (visionGroup) {
@@ -1379,8 +1472,19 @@
 
                     case 'chasing':
                         chasingCount++;
+                        // Three.js standard +Z lookAt 정렬을 통해 정면으로 정확하게 마주 보며 걸음
                         lookAtTarget(owner.mesh, player.position);
                         moveObjectToward(owner.mesh, player.position, owner.speed * 1.35, delta);
+
+                        // 무섭게 팔과 다리를 휘두르며 전력질주
+                        if (owner.leftArm && owner.rightArm) {
+                            owner.leftArm.rotation.x = Math.sin(clock.getElapsedTime() * 15) * 0.8;
+                            owner.rightArm.rotation.x = -Math.sin(clock.getElapsedTime() * 15) * 0.8;
+                        }
+                        if (owner.leftLeg && owner.rightLeg) {
+                            owner.leftLeg.rotation.x = -Math.sin(clock.getElapsedTime() * 15) * 0.6;
+                            owner.rightLeg.rotation.x = Math.sin(clock.getElapsedTime() * 15) * 0.6;
+                        }
 
                         if (player.isHidden || distToPlayer > 18) {
                             owner.state = 'patrol_search';
@@ -1389,13 +1493,22 @@
                         break;
 
                     case 'returning':
-                        // 대문 문틈 사이로 복귀
                         const homeEntrance = new THREE.Vector3(owner.house.position.x + owner.house.localDoorX, 0, owner.house.position.z);
                         moveObjectToward(owner.mesh, homeEntrance, owner.speed * 0.7, delta);
+                        
+                        if (owner.leftArm && owner.rightArm) {
+                            owner.leftArm.rotation.x = Math.sin(clock.getElapsedTime() * 4) * 0.2;
+                            owner.rightArm.rotation.x = -Math.sin(clock.getElapsedTime() * 4) * 0.2;
+                        }
+                        if (owner.leftLeg && owner.rightLeg) {
+                            owner.leftLeg.rotation.x = -Math.sin(clock.getElapsedTime() * 4) * 0.2;
+                            owner.rightLeg.rotation.x = Math.sin(clock.getElapsedTime() * 4) * 0.2;
+                        }
+
                         if (owner.mesh.position.distanceTo(homeEntrance) < 0.35) {
                             owner.mesh.visible = false;
                             owner.state = 'idle';
-                            owner.house.cooldownTimer = 8.0; // 쿨다운 8초 설정
+                            owner.house.cooldownTimer = 8.0; 
                         }
                         break;
                 }
@@ -1409,7 +1522,6 @@
             }
         }
 
-        // --- 시야 서치 레이저 탐지 연산 ---
         function checkPlayerInVision(owner) {
             if (player.isHidden) return false;
 
@@ -1419,9 +1531,8 @@
             const dist = ownerPos.distanceTo(playerPos);
             if (dist > 13.5) return false; 
 
-            // 주인이 바라보는 정면 벡터 계산 (왼쪽/오른쪽 집에 맞춰 설계)
-            const forwardX = owner.house.side === 'left' ? 1 : -1;
-            const forward = new THREE.Vector3(forwardX, 0, 0).applyQuaternion(owner.mesh.quaternion).normalize();
+            // 정방향 교정에 의해 주인의 로컬 +Z가 완벽한 정면을 나타냄
+            const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(owner.mesh.quaternion).normalize();
             const toPlayer = new THREE.Vector3().subVectors(playerPos, ownerPos).normalize();
 
             const angle = forward.angleTo(toPlayer);
@@ -1446,18 +1557,189 @@
             mesh.lookAt(lookTarget);
         }
 
-        // --- 최종 피격/잡힘 판정 ---
         function checkCollisions() {
-            if (isGameOver) return;
+            if (isGameOver || cutsceneActive) return;
 
-            owners.forEach(owner => {
+            activeOwners.forEach(owner => {
                 if (!owner.mesh.visible) return;
 
                 const dist = owner.mesh.position.distanceTo(player.position);
                 if (dist < 0.85) {
-                    triggerGameOver();
+                    startGameOverCutscene(owner);
                 }
             });
+        }
+
+        function startGameOverCutscene(owner) {
+            cutsceneActive = true;
+            cutsceneStage = 0;
+            cutsceneTimer = 0;
+            catchingOwnerInstance = owner;
+
+            // UI 가시성 및 입력 격리
+            document.getElementById('warning-banner').classList.add('hidden');
+            document.getElementById('interaction-prompt').classList.add('hidden');
+            document.getElementById('btn-ring').classList.add('hidden');
+
+            const dialogueBox = document.getElementById('cutscene-dialogue');
+            dialogueBox.classList.remove('hidden');
+            dialogueBox.innerText = `😡 ${owner.house.ownerName}: "요 녀석 딱 걸렸다!!"`;
+
+            sfx.playCatch();
+        }
+
+        function updateCutscene(delta) {
+            cutsceneTimer += delta;
+
+            const owner = catchingOwnerInstance;
+            if (!owner) return;
+
+            if (cutsceneStage === 0) {
+                // [스테이지 0] 머리채 움켜쥐기 (1.8초)
+                const playerDir = new THREE.Vector3(0, 0, 1).applyQuaternion(player.quaternion).normalize();
+                owner.mesh.position.copy(player.position).addScaledVector(playerDir, -0.6);
+                owner.mesh.lookAt(player.position);
+
+                // 집주인 팔: 오른손을 뻗어 플레이어의 정수리 부근 움켜쥐기
+                if (owner.rightArm && owner.leftArm) {
+                    owner.rightArm.rotation.set(-Math.PI / 2, 0, -0.3);
+                    owner.leftArm.rotation.set(0.3, 0, 0);
+                }
+
+                // 플레이어 머리: 아픔에 뒤로 완전히 꺾이고 흔들림
+                if (player.head) {
+                    player.head.rotation.x = -0.55; 
+                    player.head.rotation.y = Math.sin(clock.getElapsedTime() * 30) * 0.15; 
+                }
+                
+                // 플레이어 팔: 고통으로 인해 머리 위를 부여잡으며 버둥버둥
+                if (player.leftArmJoint && player.rightArmJoint) {
+                    player.leftArmJoint.rotation.set(-1.2, 0, -0.4);
+                    player.rightArmJoint.rotation.set(-1.2, 0, 0.4);
+                }
+
+                // 슬랩스틱 슬로우 클로즈업 카메라 연출
+                const midPoint = new THREE.Vector3().addVectors(player.position, owner.mesh.position).multiplyScalar(0.5);
+                const zoomCamPos = new THREE.Vector3(midPoint.x + 3.5, midPoint.y + 1.8, midPoint.z + 3.0);
+                camera.position.lerp(zoomCamPos, 0.1);
+                camera.lookAt(midPoint.x, midPoint.y + 1.2, midPoint.z);
+
+                if (Math.floor(cutsceneTimer * 8) % 2 === 0) {
+                    sfx.playWhimper(); 
+                }
+
+                if (cutsceneTimer > 1.8) {
+                    cutsceneStage = 1;
+                    cutsceneTimer = 0;
+                    document.getElementById('cutscene-dialogue').innerText = `😭 플레이어: "아얏! 머리 아파요! 다신 안 그럴게요!!"`;
+                }
+
+            } else if (cutsceneStage === 1) {
+                // [스테이지 1] 대문 마당 방향으로 질질질 끌고 가기
+                const homeEntrance = new THREE.Vector3(owner.house.position.x + owner.house.localDoorX, 0, owner.house.position.z);
+                
+                moveObjectToward(owner.mesh, homeEntrance, owner.speed * 0.55, delta);
+                
+                const ownerForward = new THREE.Vector3(0, 0, 1).applyQuaternion(owner.mesh.quaternion).normalize();
+                player.position.copy(owner.mesh.position).addScaledVector(ownerForward, 0.55);
+                player.lookAt(owner.mesh.position);
+                player.rotation.y += Math.PI; 
+
+                // 끌려가며 코믹하게 다리둥둥 버둥질 애니메이션 (관절 중심 구동)
+                const kickSpeed = 25;
+                if (player.leftLegJoint && player.rightLegJoint) {
+                    player.leftLegJoint.rotation.x = Math.sin(clock.getElapsedTime() * kickSpeed) * 0.95;
+                    player.rightLegJoint.rotation.x = -Math.sin(clock.getElapsedTime() * kickSpeed) * 0.95;
+                }
+                if (player.leftArmJoint && player.rightArmJoint) {
+                    player.leftArmJoint.rotation.set(Math.sin(clock.getElapsedTime() * kickSpeed) * 0.8, 0, -0.2);
+                    player.rightArmJoint.rotation.set(-Math.sin(clock.getElapsedTime() * kickSpeed) * 0.8, 0, 0.2);
+                }
+
+                if (player.head) {
+                    player.head.rotation.x = -0.55; 
+                    player.head.rotation.y = Math.sin(clock.getElapsedTime() * kickSpeed) * 0.25;
+                }
+
+                if (owner.rightArm && owner.leftArm) {
+                    owner.rightArm.rotation.set(-Math.PI / 2.2, 0, -0.15); 
+                    owner.leftArm.rotation.x = Math.sin(clock.getElapsedTime() * 5) * 0.3; 
+                }
+
+                const midPoint = new THREE.Vector3().addVectors(player.position, owner.mesh.position).multiplyScalar(0.5);
+                const followCamPos = new THREE.Vector3(midPoint.x + 8.5, midPoint.y + 4.5, midPoint.z + 7.5);
+                camera.position.lerp(followCamPos, 0.08);
+                camera.lookAt(midPoint);
+
+                if (Math.floor(cutsceneTimer * 5) % 2 === 0) {
+                    sfx.playWhimper();
+                }
+
+                const distToGate = owner.mesh.position.distanceTo(homeEntrance);
+                if (distToGate < 0.6 || cutsceneTimer > 3.8) {
+                    cutsceneStage = 2;
+                    cutsceneTimer = 0;
+                    document.getElementById('cutscene-dialogue').innerText = `😡 아저씨: "거기 딱 꿇어앉고 번쩍 손들고 반성해!!"`;
+                    sfx.playAngry();
+                }
+
+            } else if (cutsceneStage === 2) {
+                // [스테이지 2] 앞마당에서 완벽한 밀착 벌서기 연출
+                const punishPosPlayer = new THREE.Vector3(owner.house.position.x + (owner.house.side === 'left' ? 7.8 : -7.8), 0, owner.house.position.z + 1.2);
+                const punishPosOwner = new THREE.Vector3(owner.house.position.x + (owner.house.side === 'left' ? 5.8 : -5.8), 0, owner.house.position.z + 1.2);
+
+                player.position.copy(punishPosPlayer);
+                owner.mesh.position.copy(punishPosOwner);
+
+                owner.mesh.lookAt(player.position);
+                player.lookAt(owner.mesh.position);
+
+                // [무릎꿇기 고정] - 높이를 0.15로 낮추어 지면에 다리를 밀착시키고, 다리를 뒤로 90도 꺾어 공중부양 및 파츠 찢어짐 원천 제거
+                player.position.y = 0.15; 
+                if (player.leftLegJoint && player.rightLegJoint) {
+                    player.leftLegJoint.rotation.set(-Math.PI / 2, 0, 0); // 90도 골반 회전
+                    player.rightLegJoint.rotation.set(-Math.PI / 2, 0, 0);
+                }
+
+                // [어깨를 축으로 안전하게 손드는 벌서기] - 몸체 이탈 제로
+                if (player.leftArmJoint && player.rightArmJoint) {
+                    player.leftArmJoint.rotation.set(0, 0, Math.PI - 0.25); // 어깨에서 팔을 머리 위로 똑바르게 180도 회전
+                    player.rightArmJoint.rotation.set(0, 0, -Math.PI + 0.25);
+                }
+
+                // 고개 숙임
+                if (player.head) {
+                    player.head.rotation.set(0.48, 0, 0);
+                }
+
+                // 아저씨 훈계 애니메이션
+                if (owner.rightArm && owner.leftArm) {
+                    owner.rightArm.rotation.set(-Math.PI / 3, 0, -0.4); 
+                    owner.leftArm.rotation.set(0.2, 0, 0.3); 
+                }
+
+                if (owner.head) {
+                    owner.head.rotation.x = Math.sin(clock.getElapsedTime() * 12) * 0.15;
+                    owner.head.rotation.y = Math.cos(clock.getElapsedTime() * 8) * 0.15;
+                }
+
+                // 회전하는 패닝 카메라로 슬랩스틱 처벌 앵글 집중 연출
+                const focusCenter = new THREE.Vector3().addVectors(player.position, owner.mesh.position).multiplyScalar(0.5);
+                const angleOffset = clock.getElapsedTime() * 0.35; 
+                const camRadius = 4.8;
+                camera.position.set(
+                    focusCenter.x + Math.sin(angleOffset) * camRadius,
+                    focusCenter.y + 1.8,
+                    focusCenter.z + Math.cos(angleOffset) * camRadius
+                );
+                camera.lookAt(focusCenter.x, focusCenter.y + 0.5, focusCenter.z);
+
+                if (cutsceneTimer > 4.2) {
+                    document.getElementById('cutscene-dialogue').classList.add('hidden');
+                    cutsceneActive = false;
+                    triggerGameOver();
+                }
+            }
         }
 
         function addScore() {
@@ -1466,14 +1748,17 @@
             
             if (score > highScore) {
                 highScore = score;
-                localStorage.setItem('bel_highscore', highScore);
+                try {
+                    localStorage.setItem('bel_highscore', highScore);
+                } catch (e) {
+                    console.warn("로컬스토리지 저장 우회");
+                }
                 document.getElementById('high-score-val').innerText = highScore;
             }
         }
 
         function triggerGameOver() {
             isGameOver = true;
-            sfx.playCatch();
 
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
@@ -1489,13 +1774,31 @@
             score = 0;
             playerStamina = 100;
             isGameOver = false;
+            cutsceneActive = false;
+            cutsceneStage = 0;
+            catchingOwnerInstance = null;
             
             document.getElementById('score-val').innerText = '0';
             document.getElementById('stamina-bar').style.width = '100%';
+            document.getElementById('cutscene-dialogue').classList.add('hidden');
 
             player.position.set(0, 0, 25);
             player.rotation.set(0, 0, 0);
             player.isHidden = false;
+            
+            // 모든 관절 기본 자세 원복
+            if (player.leftArmJoint && player.rightArmJoint) {
+                player.leftArmJoint.rotation.set(0,0,0);
+                player.rightArmJoint.rotation.set(0,0,0);
+            }
+            if (player.leftLegJoint && player.rightLegJoint) {
+                player.leftLegJoint.rotation.set(0,0,0);
+                player.rightLegJoint.rotation.set(0,0,0);
+            }
+            if (player.head) {
+                player.head.rotation.set(0,0,0);
+            }
+
             player.traverse(node => {
                 if (node.isMesh) {
                     node.material.transparent = false;
@@ -1503,17 +1806,15 @@
                 }
             });
 
-            houses.forEach(house => {
-                house.hasBeenRung = false;
-                house.cooldownTimer = 0;
-                house.doorMesh.position.y = house.initialDoorY; 
-            });
+            for (let [zIdx, chunk] of activeChunks.entries()) {
+                destroyChunk(zIdx, chunk);
+            }
+            activeChunks.clear();
+            activeHouses = [];
+            activeBushes = [];
+            activeOwners = [];
 
-            owners.forEach(owner => {
-                owner.mesh.visible = false;
-                owner.state = 'idle';
-                owner.mesh.position.copy(owner.homePos);
-            });
+            updateMapChunks();
 
             document.getElementById('warning-banner').classList.add('hidden');
 
