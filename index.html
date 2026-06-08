@@ -1359,20 +1359,10 @@
             if (insideBush && !player.isHidden) {
                 player.isHidden = true;
                 sfx.playHiding();
-                player.traverse(node => {
-                    if (node.isMesh) {
-                        node.material.transparent = true;
-                        node.material.opacity = 0.45;
-                    }
-                });
+                player.visible = false; // 완전히 보이지 않게 처리 (흐려짐 제거)
             } else if (!insideBush && player.isHidden) {
                 player.isHidden = false;
-                player.traverse(node => {
-                    if (node.isMesh) {
-                        node.material.transparent = false;
-                        node.material.opacity = 1.0;
-                    }
-                });
+                player.visible = true; // 수풀에서 나오면 즉시 노출
             }
         }
 
@@ -1486,7 +1476,9 @@
                             owner.rightLeg.rotation.x = Math.sin(clock.getElapsedTime() * 15) * 0.6;
                         }
 
-                        if (player.isHidden || distToPlayer > 18) {
+                        // 수풀에 완벽히 숨었더라도 집주인이 너무 가깝게 다가왔다면(거리 3.0 미만) 수색으로 전환하지 않고 끝까지 추격
+                        const isCloseEnoughToDetect = player.isHidden && distToPlayer < 3.0;
+                        if ((player.isHidden && !isCloseEnoughToDetect) || distToPlayer > 18) {
                             owner.state = 'patrol_search';
                             owner.currentWaypointIdx = 1; 
                         }
@@ -1523,7 +1515,17 @@
         }
 
         function checkPlayerInVision(owner) {
-            if (player.isHidden) return false;
+            if (player.isHidden) {
+                const ownerPos = owner.mesh.position;
+                const playerPos = player.position;
+                const dist = ownerPos.distanceTo(playerPos);
+
+                // 수풀에 숨었으나 주인이 3.0 이내로 너무 가까이 붙어있다면 냄새를 맡고 발견함!
+                if (dist < 3.0) {
+                    return true;
+                }
+                return false;
+            }
 
             const ownerPos = owner.mesh.position;
             const playerPos = player.position;
@@ -1584,6 +1586,8 @@
             const dialogueBox = document.getElementById('cutscene-dialogue');
             dialogueBox.classList.remove('hidden');
             dialogueBox.innerText = `😡 ${owner.house.ownerName}: "요 녀석 딱 걸렸다!!"`;
+
+            player.visible = true; // 머리채 잡기 연출 시 반드시 캐릭터가 보이도록 설정
 
             sfx.playCatch();
         }
@@ -1785,6 +1789,7 @@
             player.position.set(0, 0, 25);
             player.rotation.set(0, 0, 0);
             player.isHidden = false;
+            player.visible = true; // 게임 재시작 시 투명 상태 초기화
             
             // 모든 관절 기본 자세 원복
             if (player.leftArmJoint && player.rightArmJoint) {
